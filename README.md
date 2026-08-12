@@ -4,7 +4,7 @@
 
 Opinionated Oxlint rules that reject low-evidence and low-signal TypeScript and JavaScript patterns.
 
-The plugin is source-distributed for now. An npm release is planned; until then, use the bundled agent skill to copy and configure it in another repository.
+This project is meant to be vendored, not treated as a fixed npm dependency. Copy the rules into your repository, read them, and change them to match your team's standards. The bundled agent skill handles the initial copy and configuration; after that, the vendored files are yours to maintain and make your own.
 
 ## Install with an agent skill
 

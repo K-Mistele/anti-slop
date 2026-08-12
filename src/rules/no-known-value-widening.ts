@@ -150,11 +150,9 @@ export const noKnownValueWideningRule = defineRule({
 			expression: ESTree.Expression,
 			destination: WideningTarget | null,
 			subject: string,
-			options: Readonly<{ allowEmptyDictionaryAccumulator?: boolean }> = {},
 		) => {
 			if (destination === null) return;
 			if (
-				options.allowEmptyDictionaryAccumulator === true &&
 				isDictionaryAccumulatorTarget(destination) &&
 				isEmptyObjectExpression(expression)
 			) {
@@ -181,7 +179,6 @@ export const noKnownValueWideningRule = defineRule({
 					node.init,
 					targetFromAnnotation(node.id.typeAnnotation),
 					`binding \`${node.id.name}\``,
-					{ allowEmptyDictionaryAccumulator: true },
 				);
 			},
 			PropertyDefinition(node) {

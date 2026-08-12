@@ -12,6 +12,13 @@ tester.run("anti-slop/no-known-value-widening", noKnownValueWideningRule, {
 	valid: [
 		`${prelude} const commands: Record<string, Command> = {};`,
 		`${prelude} type Index<T> = Record<string, T>; const commands: Index<Command> = {};`,
+		`${prelude} class Registry { commands: Record<string, Command> = {}; }`,
+		`${prelude} class Registry { accessor commands: Record<string, Command> = {}; }`,
+		`${prelude} let commands: Record<string, Command>; commands = {};`,
+		`${prelude} function create(): Record<string, Command> { return {}; }`,
+		`${prelude} const create = (): Record<string, Command> => ({});`,
+		`${prelude} const commands = {} as Record<string, Command>;`,
+		`${prelude} const commands = <Record<string, Command>>{};`,
 		`${prelude} const commands = { start: startCommand };`,
 		`${prelude} const commands = { start: startCommand } as const;`,
 		`${prelude} const commands = { start: startCommand } satisfies Record<string, Command>;`,
