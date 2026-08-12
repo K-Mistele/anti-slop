@@ -9,8 +9,48 @@ import {
 
 import type { ESTree } from "@oxlint/plugins";
 
+const typeNodeKinds: ReadonlySet<string> = new Set([
+	"JSDocNonNullableType",
+	"JSDocNullableType",
+	"JSDocUnknownType",
+	"TSAnyKeyword",
+	"TSArrayType",
+	"TSBigIntKeyword",
+	"TSBooleanKeyword",
+	"TSConditionalType",
+	"TSConstructorType",
+	"TSFunctionType",
+	"TSImportType",
+	"TSIndexedAccessType",
+	"TSInferType",
+	"TSIntersectionType",
+	"TSIntrinsicKeyword",
+	"TSLiteralType",
+	"TSMappedType",
+	"TSNamedTupleMember",
+	"TSNeverKeyword",
+	"TSNullKeyword",
+	"TSNumberKeyword",
+	"TSObjectKeyword",
+	"TSParenthesizedType",
+	"TSStringKeyword",
+	"TSSymbolKeyword",
+	"TSTemplateLiteralType",
+	"TSThisType",
+	"TSTupleType",
+	"TSTypeLiteral",
+	"TSTypeOperator",
+	"TSTypePredicate",
+	"TSTypeQuery",
+	"TSTypeReference",
+	"TSUndefinedKeyword",
+	"TSUnionType",
+	"TSUnknownKeyword",
+	"TSVoidKeyword",
+]);
+
 function isTypeNode(node: ESTree.Node): node is ESTree.TSType {
-	return node.type.startsWith("TS") && node.type !== "TSTypeAnnotation";
+	return typeNodeKinds.has(node.type);
 }
 
 function typeReferenceName(type: ESTree.TSTypeReference): string | null {

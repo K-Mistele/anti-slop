@@ -12,6 +12,9 @@ tester.run("anti-slop/no-object-parameters", noObjectParametersRule, {
 		"function f<Value extends object>(value: Value) {}",
 		"function f<Value extends Owner, Owner extends { readonly id: string }>(value: Value) {}",
 		"type Owner = { readonly id: string }; function f<Value extends Owner>(value: Value) {}",
+		"type Alias = object; function consume<Alias>(value: Alias) {}",
+		"type Alias = object; type Consumer<Alias> = (value: Alias) => void;",
+		"type Alias = object; interface Consumer<Alias> { consume(value: Alias): void }",
 	],
 	invalid: [
 		{ code: "function f(value: object) {}", errors: [error] },
