@@ -37,7 +37,9 @@ export default defineConfig({
     "anti-slop/no-chained-type-assertions": "error",
     "anti-slop/no-conditional-empty-object-spread": "error",
     "anti-slop/no-known-value-widening": "error",
+    "anti-slop/no-module-mocking": "error",
     "anti-slop/no-object-parameters": "error",
+    "anti-slop/no-reflect-apply": "error",
     "anti-slop/no-reflect-get": "error",
     "anti-slop/no-runtime-typeof": "error",
     "anti-slop/no-shape-in-symbol-names": "error",
@@ -45,7 +47,8 @@ export default defineConfig({
     "anti-slop/no-unknown-returns": "error",
     "anti-slop/no-unknown-type-aliases": "error",
     "anti-slop/no-unsafe-dictionary-type": "error",
-    "anti-slop/no-widen-then-assert": "error"
+    "anti-slop/no-widen-then-assert": "error",
+    "anti-slop/require-safety-comment-for-type-assertion": "error"
   }
 });
 ```
@@ -57,7 +60,9 @@ The same `jsPlugins` entry and rules work under `lint` in a Vite+ config.
 - `no-chained-type-assertions` — rejects nested type assertions that fabricate evidence.
 - `no-conditional-empty-object-spread` — rejects conditional spreads that use `{}` to omit fields.
 - `no-known-value-widening` — rejects explicit broad target types that discard known value evidence.
+- `no-module-mocking` — rejects Vitest and Jest module mocks in favor of real dependency seams.
 - `no-object-parameters` — rejects the broad `object` type on function inputs.
+- `no-reflect-apply` — rejects `Reflect.apply` in favor of typed function calls.
 - `no-reflect-get` — rejects `Reflect.get` in favor of typed property access or boundary parsing.
 - `no-runtime-typeof` — requires boundary parsing instead of ad hoc `typeof` narrowing.
 - `no-shape-in-symbol-names` — rejects `shape` in symbol names.
@@ -66,6 +71,7 @@ The same `jsPlugins` entry and rules work under `lint` in a Vite+ config.
 - `no-unknown-type-aliases` — rejects aliases that merely conceal `unknown`.
 - `no-unsafe-dictionary-type` — rejects dictionary value contracts based on `unknown`, `any`, `object`, `{}`, and semantic equivalents.
 - `no-widen-then-assert` — rejects local flows that widen known values and later assert them back.
+- `require-safety-comment-for-type-assertion` — requires each non-const assertion to document its checked invariant.
 
 ## Violation examples
 
@@ -95,10 +101,22 @@ const handlers: Record<string, Handler> = {
 
 This discards the known `start` key. Preserve inference or use `satisfies Record<string, Handler>` instead.
 
+### `no-module-mocking`
+
+```ts
+vi.mock("./user-store");
+```
+
 ### `no-object-parameters`
 
 ```ts
 function save(value: object) {}
+```
+
+### `no-reflect-apply`
+
+```ts
+const value = Reflect.apply(operation, owner, args);
 ```
 
 ### `no-reflect-get`
@@ -156,6 +174,19 @@ type OtherMetadata = { [key: string]: object };
 const loaded: User = loadUser();
 const stored: unknown = loaded;
 const user = stored as User;
+```
+
+### `require-safety-comment-for-type-assertion`
+
+```ts
+const userId = value as UserId;
+```
+
+Add a specific justification immediately before a necessary assertion:
+
+```ts
+// SAFETY: parseUserId validated the identifier before branding it.
+const userId = value as UserId;
 ```
 
 ## Development
