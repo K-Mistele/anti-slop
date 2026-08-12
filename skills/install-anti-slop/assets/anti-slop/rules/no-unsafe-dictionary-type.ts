@@ -94,7 +94,7 @@ export const noUnsafeDictionaryTypeRule = defineRule({
 		},
 		messages: {
 			unsafeDictionary:
-				"This object dictionary's direct value type is an unsafe {{value}} escape hatch. Replace it with a concrete owner/schema-derived value type and parse external data at its boundary.",
+				"This dictionary's {{value}} value type gives callers no concrete value contract. Use an owner/schema-derived value type; parse external payloads before insertion.",
 		},
 	},
 	createOnce(context) {

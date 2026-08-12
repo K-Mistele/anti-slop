@@ -140,7 +140,7 @@ export const noKnownValueWideningRule = defineRule({
 		},
 		messages: {
 			widening:
-				"The known initializer supplying {{subject}} carries established type evidence, but the explicit {{target}} target type discards it. Preserve inference, use `satisfies`, or introduce/use a named owner contract; parse genuinely external data once at its boundary.",
+				"The explicit {{target}} type on {{subject}} discards known type evidence. Keep inference, validate with `satisfies`, or use a named owner contract.",
 		},
 	},
 	createOnce(context) {

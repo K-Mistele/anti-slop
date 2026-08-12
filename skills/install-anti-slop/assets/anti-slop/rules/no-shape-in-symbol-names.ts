@@ -17,7 +17,7 @@ export const noForbiddenTermInSymbolNamesRule = defineRule({
     },
     messages: {
       forbiddenSymbolName:
-        'Do not use the case-insensitive substring "shape" in symbol names (found "{{name}}").',
+        'Rename symbol "{{name}}" for its domain role; "shape" describes structure rather than ownership.',
     },
   },
   create(context) {

@@ -45,7 +45,7 @@ export const noUnknownReturnsRule = defineRule({
     },
     messages: {
       unknownReturn:
-        "Function returns `unknown` without establishing its contract. Parse the value at its boundary and return a meaningful domain type.",
+        "This function exposes `unknown` to its caller. Parse the value at its boundary and return a named domain type.",
     },
   },
   create(context) {

@@ -46,7 +46,7 @@ export const noReflectGetRule = defineRule({
     },
     messages: {
       reflectGet:
-        "Do not use `Reflect.get`. Use typed property access, or parse dynamic input into a meaningful domain type before reading it.",
+        "Replace `Reflect.get` with typed property access. Parse dynamic input into a named domain type before reading it.",
     },
   },
   create(context) {

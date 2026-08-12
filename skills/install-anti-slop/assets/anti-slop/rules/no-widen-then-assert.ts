@@ -321,7 +321,7 @@ export const noWidenThenAssertRule = defineRule({
     },
     messages: {
       widenThenAssert:
-        'Binding "{{name}}" erases established type evidence by widening the value, then reconstructs that evidence with a type assertion. Preserve the precise type end-to-end; if the input is genuinely unknown, parse it once at the boundary instead.',
+        'Binding "{{name}}" discards type evidence and later recreates it with an assertion. Keep the precise type from initialization through use; parse boundary input once.',
     },
   },
   create(context) {
