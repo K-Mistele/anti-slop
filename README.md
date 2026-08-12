@@ -38,9 +38,11 @@ export default defineConfig({
     "anti-slop/no-conditional-empty-object-spread": "error",
     "anti-slop/no-known-value-widening": "error",
     "anti-slop/no-object-parameters": "error",
+    "anti-slop/no-reflect-get": "error",
     "anti-slop/no-runtime-typeof": "error",
     "anti-slop/no-shape-in-symbol-names": "error",
     "anti-slop/no-unknown-parameters": "error",
+    "anti-slop/no-unknown-returns": "error",
     "anti-slop/no-unknown-type-aliases": "error",
     "anti-slop/no-unsafe-dictionary-type": "error",
     "anti-slop/no-widen-then-assert": "error"
@@ -56,9 +58,11 @@ The same `jsPlugins` entry and rules work under `lint` in a Vite+ config.
 - `no-conditional-empty-object-spread` — rejects conditional spreads that use `{}` to omit fields.
 - `no-known-value-widening` — rejects explicit broad target types that discard known value evidence.
 - `no-object-parameters` — rejects the broad `object` type on function inputs.
+- `no-reflect-get` — rejects `Reflect.get` in favor of typed property access or boundary parsing.
 - `no-runtime-typeof` — requires boundary parsing instead of ad hoc `typeof` narrowing.
 - `no-shape-in-symbol-names` — rejects `shape` in symbol names.
 - `no-unknown-parameters` — rejects `unknown` inputs except the explicit `cause` convention.
+- `no-unknown-returns` — rejects function contracts that return `unknown` or `Promise<unknown>`.
 - `no-unknown-type-aliases` — rejects aliases that merely conceal `unknown`.
 - `no-unsafe-dictionary-type` — rejects dictionary value contracts based on `unknown`, `any`, `object`, `{}`, and semantic equivalents.
 - `no-widen-then-assert` — rejects local flows that widen known values and later assert them back.
@@ -97,6 +101,12 @@ This discards the known `start` key. Preserve inference or use `satisfies Record
 function save(value: object) {}
 ```
 
+### `no-reflect-get`
+
+```ts
+const value = Reflect.get(owner, key);
+```
+
 ### `no-runtime-typeof`
 
 ```ts
@@ -117,6 +127,14 @@ interface UserShape {
 
 ```ts
 function handle(input: unknown) {}
+```
+
+### `no-unknown-returns`
+
+```ts
+function loadUser(): unknown {
+  return input;
+}
 ```
 
 ### `no-unknown-type-aliases`
