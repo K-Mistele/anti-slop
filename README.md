@@ -63,6 +63,83 @@ The same `jsPlugins` entry and rules work under `lint` in a Vite+ config.
 - `no-unsafe-dictionary-type` — rejects dictionary value contracts based on `unknown`, `any`, `object`, `{}`, and semantic equivalents.
 - `no-widen-then-assert` — rejects local flows that widen known values and later assert them back.
 
+## Violation examples
+
+Each snippet below is rejected by the named rule.
+
+### `no-chained-type-assertions`
+
+```ts
+const user = input as object as User;
+```
+
+### `no-conditional-empty-object-spread`
+
+```ts
+const options = {
+  ...(timeout !== undefined ? { timeout } : {}),
+};
+```
+
+### `no-known-value-widening`
+
+```ts
+const handlers: Record<string, Handler> = {
+  start: startHandler,
+};
+```
+
+This discards the known `start` key. Preserve inference or use `satisfies Record<string, Handler>` instead.
+
+### `no-object-parameters`
+
+```ts
+function save(value: object) {}
+```
+
+### `no-runtime-typeof`
+
+```ts
+if (typeof input === "string") {
+  useName(input);
+}
+```
+
+### `no-shape-in-symbol-names`
+
+```ts
+interface UserShape {
+  id: string;
+}
+```
+
+### `no-unknown-parameters`
+
+```ts
+function handle(input: unknown) {}
+```
+
+### `no-unknown-type-aliases`
+
+```ts
+type ExternalValue = unknown;
+```
+
+### `no-unsafe-dictionary-type`
+
+```ts
+type Metadata = Record<string, unknown>;
+type OtherMetadata = { [key: string]: object };
+```
+
+### `no-widen-then-assert`
+
+```ts
+const loaded: User = loadUser();
+const stored: unknown = loaded;
+const user = stored as User;
+```
+
 ## Development
 
 ```bash
