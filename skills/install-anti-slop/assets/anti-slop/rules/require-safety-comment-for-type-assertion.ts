@@ -48,7 +48,7 @@ export const requireSafetyCommentForTypeAssertionRule = defineRule({
         "This type assertion has no `SAFETY:` justification. State the checked invariant immediately before the assertion or its containing statement.",
     },
   },
-  create(context) {
+  createOnce(context) {
     const checkAssertion = (node: TypeAssertion) => {
       if (isConstAssertion(node) || hasSafetyComment(context.sourceCode, node)) return;
       context.report({ node, messageId: "missingSafetyComment" });

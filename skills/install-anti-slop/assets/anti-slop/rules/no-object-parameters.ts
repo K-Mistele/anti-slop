@@ -60,7 +60,7 @@ export const noObjectParametersRule = defineRule({
 				"Parameter `{{parameter}}` uses the broad `object` type. Accept a named owner type; parse external input at its boundary before calling this function.",
 		},
 	},
-	create(context) {
+	createOnce(context) {
 		const aliases = new Map<string, ESTree.TSType>();
 
 		const resolvesToObject = (
@@ -110,6 +110,7 @@ export const noObjectParametersRule = defineRule({
 
 		return {
 			Program(node) {
+				aliases.clear();
 				for (const statement of node.body) {
 					const declaration =
 						statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;

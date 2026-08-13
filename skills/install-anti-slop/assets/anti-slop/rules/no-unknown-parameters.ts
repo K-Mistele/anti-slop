@@ -52,7 +52,7 @@ export const noUnknownParametersRule = defineRule({
         "Parameter `{{parameter}}` leaves input unparsed. Accept a named domain type; run the expected schema or parser at the I/O boundary before calling this function.",
     },
   },
-  create(context) {
+  createOnce(context) {
     const checkParameters = (node: ParameterOwner) => {
       for (const parameter of node.params) {
         const annotation = parameterAnnotation(parameter);

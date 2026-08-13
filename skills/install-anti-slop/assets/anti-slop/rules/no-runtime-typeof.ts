@@ -13,7 +13,7 @@ export const noRuntimeTypeofRule = defineRule({
         "A `typeof` check narrows a representation without establishing its contract. Parse input at its I/O boundary, then branch on the domain value.",
     },
   },
-  create(context) {
+  createOnce(context) {
     return {
       UnaryExpression(node) {
         if (node.operator === "typeof") {

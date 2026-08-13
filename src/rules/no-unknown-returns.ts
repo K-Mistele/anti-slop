@@ -48,7 +48,7 @@ export const noUnknownReturnsRule = defineRule({
         "This function exposes `unknown` to its caller. Parse the value at its boundary and return a named domain type.",
     },
   },
-  create(context) {
+  createOnce(context) {
     const aliases = new Map<string, ESTree.TSTypeAliasDeclaration>();
 
     const resolvesToUnknown = (
@@ -96,6 +96,7 @@ export const noUnknownReturnsRule = defineRule({
 
     return {
       Program(node) {
+        aliases.clear();
         for (const statement of node.body) {
           const declaration =
             statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;
