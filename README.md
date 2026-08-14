@@ -133,6 +133,20 @@ if (typeof input === "string") {
 }
 ```
 
+Schema-free projects can permit `typeof` checks directly inside type predicate and
+assertion functions while continuing to reject ad hoc checks elsewhere:
+
+```json
+{
+  "anti-slop/no-runtime-typeof": [
+    "error",
+    { "allowInTypeGuards": true }
+  ]
+}
+```
+
+The option defaults to `false`.
+
 ### `no-shape-in-symbol-names`
 
 ```ts
