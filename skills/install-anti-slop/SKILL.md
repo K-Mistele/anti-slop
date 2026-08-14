@@ -30,15 +30,31 @@ Install the bundled Oxlint plugin into the current repository and integrate it w
    - `oxlint` is a development dependency. The copied source imports `@oxlint/plugins`, so install it as a development dependency for a local-only plugin.
    - Do not replace the package manager or rewrite unrelated dependency ranges.
 
-4. Register the plugin and enable all rules. For `oxlint.config.ts` or `.oxlintrc.json`, add:
+4. Register the plugin, configure ignores, and enable all rules. For `oxlint.config.ts` or `.oxlintrc.json`, merge these fields with the existing configuration:
 
    ```ts
+   ignorePatterns: [
+     ".agent/**",
+     ".agents/**",
+     ".claude/**",
+     ".codex/**",
+     ".continue/**",
+     ".cursor/**",
+     ".gemini/**",
+     ".opencode/**",
+     ".pi/**",
+     ".roo/**",
+     ".windsurf/**",
+     "tools/oxlint/anti-slop/**",
+   ],
    jsPlugins: [
      { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" },
    ],
    ```
 
-   For Vite+, add that same entry to `lint.jsPlugins`. Merge it with existing entries instead of replacing them.
+   Keep every existing ignore. Adjust the final pattern when the plugin was copied elsewhere. Inspect the repository for other project-local agent tooling directories and add them rather than linting installed skills, hooks, or generated agent configuration as application source. Do not broadly ignore all dot-directories, because some repositories keep owned source or checks in them.
+
+   For Vite+, add these fields to `lint.ignorePatterns` and `lint.jsPlugins`. Also merge the same patterns into `fmt.ignorePatterns` so `vp check` does not reformat installed agent assets or the vendored plugin. Merge existing entries instead of replacing them.
 
    Enable these rules at `"error"`:
 
@@ -62,7 +78,7 @@ Install the bundled Oxlint plugin into the current repository and integrate it w
    }
    ```
 
-5. Run the repository's lint command and typecheck. If findings appear, report them and fix them only when the user asked for migration/cleanup. Do not suppress rules, weaken rule severity, add unsafe casts, or mechanically launder types to make lint pass.
+5. Run the repository's lint command and typecheck. For Vite+, run the repository's full `vp check` command after adding both lint and format ignores. If findings appear in owned project source, report them and fix them only when the user asked for migration/cleanup. Do not suppress rules, weaken rule severity, add unsafe casts, or mechanically launder types to make lint pass.
 
 6. Review the final diff and clearly report:
    - copied path,

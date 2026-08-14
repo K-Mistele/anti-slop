@@ -30,6 +30,20 @@ Register the copied entry point in `oxlint.config.ts`:
 import { defineConfig } from "oxlint";
 
 export default defineConfig({
+  ignorePatterns: [
+    ".agent/**",
+    ".agents/**",
+    ".claude/**",
+    ".codex/**",
+    ".continue/**",
+    ".cursor/**",
+    ".gemini/**",
+    ".opencode/**",
+    ".pi/**",
+    ".roo/**",
+    ".windsurf/**",
+    "tools/oxlint/anti-slop/**",
+  ],
   jsPlugins: [
     { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" },
   ],
@@ -53,7 +67,7 @@ export default defineConfig({
 });
 ```
 
-The same `jsPlugins` entry and rules work under `lint` in a Vite+ config.
+The same `ignorePatterns`, `jsPlugins`, and rules work under `lint` in a Vite+ config. Merge the ignore patterns into Vite+'s `fmt.ignorePatterns` as well so `vp check` does not reformat installed agent assets or the vendored plugin. Preserve existing ignores and add any other project-local agent tooling directories detected in the repository; do not broadly ignore every dot-directory.
 
 ## Rules
 
