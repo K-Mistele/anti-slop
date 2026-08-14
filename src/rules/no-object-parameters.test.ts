@@ -17,10 +17,16 @@ tester.run("anti-slop/no-object-parameters", noObjectParametersRule, {
 		"type Alias = object; function consume<Alias>(value: Alias) {}",
 		"type Alias = object; type Consumer<Alias> = (value: Alias) => void;",
 		"type Alias = object; interface Consumer<Alias> { consume(value: Alias): void }",
+		"type Key = object; type Mapped<Input> = { [Key in keyof Input]: (value: Key) => void };",
+		"type Item = object; type Unpacked<Input> = Input extends Promise<infer Item> ? (value: Item) => void : never;",
 	],
 	invalid: [
 		{ code: "function f(value: object) {}", errors: [error] },
 		{ code: "type Alias = object; function f(value: Alias) {}", errors: [error] },
 		{ code: "type Alias = (object); function f(value: Alias) {}", errors: [error] },
+		{
+			code: "type Item = object; type Fallback<Input> = Input extends infer Item ? string : (value: Item) => void;",
+			errors: [error],
+		},
 	],
 });
