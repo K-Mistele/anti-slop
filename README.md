@@ -12,7 +12,7 @@ This project is meant to be vendored, not treated as a fixed npm dependency. Cop
 npx skills add dmmulroy/anti-slop --skill install-anti-slop
 ```
 
-Then ask your coding agent to install or configure anti-slop in the current repository. The skill copies the plugin, installs current Oxlint dependencies, merges the plugin into the existing lint configuration, enables every rule, and validates the result.
+Then ask your coding agent to install or configure anti-slop in the current repository. The skill copies the plugin, installs current Oxlint dependencies, merges the plugin into the existing lint configuration, enables every generic rule, and validates the result. In repositories that depend on Effect, it also enables the opt-in Effect rule group.
 
 To inspect available skills first:
 
@@ -69,7 +69,28 @@ export default defineConfig({
 
 The same `ignorePatterns`, `jsPlugins`, and rules work under `lint` in a Vite+ config. Merge the ignore patterns into Vite+'s `fmt.ignorePatterns` as well so `vp check` does not reformat installed agent assets or the vendored plugin. Preserve existing ignores and add any other project-local agent tooling directories detected in the repository; do not broadly ignore every dot-directory.
 
+### Optional Effect rules
+
+Effect-specific rules live in a separate plugin so projects that do not use Effect do not inherit Effect architecture policy. Register the Effect entry point only in repositories that use Effect:
+
+```ts
+export default defineConfig({
+  jsPlugins: [
+    { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" },
+    {
+      name: "anti-slop-effect",
+      specifier: "./tools/oxlint/anti-slop/effect/index.ts"
+    }
+  ],
+  rules: {
+    "anti-slop-effect/no-service-constructor-imports": "error"
+  }
+});
+```
+
 ## Rules
+
+### Generic rules
 
 - `no-chained-type-assertions` — rejects nested type assertions that fabricate evidence.
 - `no-conditional-empty-object-spread` — rejects conditional spreads that use `{}` to omit fields.
@@ -86,6 +107,10 @@ The same `ignorePatterns`, `jsPlugins`, and rules work under `lint` in a Vite+ c
 - `no-unsafe-dictionary-type` — rejects dictionary value contracts based on `unknown`, `any`, `object`, `{}`, and semantic equivalents.
 - `no-widen-then-assert` — rejects local flows that widen known values and later assert them back.
 - `require-safety-comment-for-type-assertion` — requires each non-const assertion to document its checked invariant.
+
+### Effect rules
+
+- `no-service-constructor-imports` — rejects relative project imports of exported `make<CapabilityName>` constructors outside `*.test.*` and `*.spec.*` files. Runtime callers should import the owning Layer and yield the contextual service instead. Package imports and static constructors such as `WorkspaceName.make` are outside the rule.
 
 ## Violation examples
 
@@ -168,6 +193,14 @@ interface UserShape {
   id: string;
 }
 ```
+
+### Effect: `no-service-constructor-imports`
+
+```ts
+import { makeIssueService } from "./issue-service.ts";
+```
+
+Import the owning Layer and yield `IssueService` instead. Focused `*.test.*` and `*.spec.*` files may import the constructor directly.
 
 ### `no-unknown-parameters`
 
