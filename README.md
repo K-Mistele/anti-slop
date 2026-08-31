@@ -85,7 +85,11 @@ export default defineConfig({
     }
   ],
   rules: {
-    "anti-slop-effect/no-service-constructor-imports": "error"
+    "anti-slop-effect/no-manual-effect-error-tag": "error",
+    "anti-slop-effect/no-manual-tag-comparison": "error",
+    "anti-slop-effect/no-manual-tagged-construction": "error",
+    "anti-slop-effect/no-service-constructor-imports": "error",
+    "anti-slop-effect/prefer-effect-match": "error"
   }
 });
 ```
@@ -112,7 +116,11 @@ export default defineConfig({
 
 ### Effect rules
 
+- `no-manual-effect-error-tag` — rejects manual `_tag` comparisons and switches inside broad `Effect.catch`, `Effect.catchAll`, and `Effect.catchIf` handlers in favor of tagged error handlers.
+- `no-manual-tag-comparison` — rejects direct `_tag` comparisons and `_tag` switches in favor of `Match`, `Predicate.isTagged`, or tagged-enum matching.
+- `no-manual-tagged-construction` — rejects literal `_tag` object construction in favor of Schema, tagged class/error, or `Data.taggedEnum` constructors. `Match.when` and `Match.not` patterns remain allowed.
 - `no-service-constructor-imports` — rejects named `make<CapabilityName>` imports from relative project modules outside `*.test.*` and `*.spec.*` files. Runtime callers should import the owning Layer and yield the contextual service instead. Package and path-alias imports, default imports, and static constructors such as `WorkspaceName.make` are outside the rule.
+- `prefer-effect-match` — rejects chained literal ternaries over the same value in favor of Effect's `Match` API.
 
 ### Analysis boundaries
 
@@ -222,6 +230,22 @@ import { makeIssueService } from "./issue-service.ts";
 ```
 
 Import the owning Layer and yield `IssueService` instead. Focused `*.test.*` and `*.spec.*` files may import the constructor directly.
+
+### Effect: tagged values and matching
+
+```ts
+if (result._tag === "Ready") useReady(result);
+
+const result = { _tag: "Ready", value };
+
+Effect.catch((error) =>
+  error._tag === "NotFound" ? recover : Effect.fail(error)
+);
+
+const label = kind === "a" ? "A" : kind === "b" ? "B" : "Other";
+```
+
+Use `Predicate.isTagged` for reusable predicates, `Match` or tagged-enum matching for branching, tagged constructors for values, and `Effect.catchTag`/`Effect.catchTags` for tagged errors.
 
 ### `no-unknown-parameters`
 
