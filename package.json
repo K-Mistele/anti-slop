@@ -1,6 +1,6 @@
 {
   "name": "oxlint-plugin-anti-slop",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Opinionated Oxlint rules that reject low-evidence TypeScript and JavaScript patterns.",
   "type": "module",
