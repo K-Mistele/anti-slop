@@ -197,7 +197,7 @@ assertion functions while continuing to reject ad hoc checks elsewhere:
 }
 ```
 
-The option defaults to `false`.
+The option defaults to `false`. Existence probes such as `typeof document === "undefined"` are always allowed because they establish whether a binding exists rather than narrow its representation.
 
 ### `no-shape-in-symbol-names`
 
@@ -206,6 +206,8 @@ interface UserShape {
   id: string;
 }
 ```
+
+Static member reads such as `schema.shape` are allowed because the member name belongs to the value's owner and cannot be renamed locally.
 
 ### Effect: `no-service-constructor-imports`
 
@@ -264,6 +266,17 @@ Add a specific justification immediately before a necessary assertion:
 ```ts
 // SAFETY: parseUserId validated the identifier before branding it.
 const userId = value as UserId;
+```
+
+`SAFETY` remains the default marker. Repositories with an established convention can configure one or more alternatives; every marker must still be followed by a non-empty justification:
+
+```json
+{
+  "anti-slop/require-safety-comment-for-type-assertion": [
+    "error",
+    { "markers": ["INVARIANT", "SAFETY"] }
+  ]
+}
 ```
 
 ## Development

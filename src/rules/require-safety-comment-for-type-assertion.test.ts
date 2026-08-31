@@ -6,6 +6,39 @@ const tester = new RuleTester({ languageOptions: { parserOptions: { lang: "ts" }
 const error = { messageId: "missingSafetyComment" };
 
 tester.run(
+  "anti-slop/require-safety-comment-for-type-assertion (custom markers)",
+  requireSafetyCommentForTypeAssertionRule,
+  {
+    valid: [
+      {
+        code: "// INVARIANT: The caller parsed this value.\nconst value = input as User;",
+        options: [{ markers: ["INVARIANT"] }],
+      },
+      {
+        code: "// SAFETY: The caller parsed this value.\nconst value = input as User;",
+        options: [{ markers: ["INVARIANT", "SAFETY"] }],
+      },
+      {
+        code: "// SAFE+: The caller parsed this value.\nconst value = input as User;",
+        options: [{ markers: ["SAFE+"] }],
+      },
+    ],
+    invalid: [
+      {
+        code: "// SAFETY: This marker is not configured.\nconst value = input as User;",
+        options: [{ markers: ["INVARIANT"] }],
+        errors: [error],
+      },
+      {
+        code: "// INVARIANT:   \nconst value = input as User;",
+        options: [{ markers: ["INVARIANT"] }],
+        errors: [error],
+      },
+    ],
+  },
+);
+
+tester.run(
   "anti-slop/require-safety-comment-for-type-assertion",
   requireSafetyCommentForTypeAssertionRule,
   {

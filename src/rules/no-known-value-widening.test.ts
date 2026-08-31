@@ -105,7 +105,15 @@ tester.run("anti-slop/no-known-value-widening", noKnownValueWideningRule, {
 			errors: [error],
 		},
 		{
+			code: `${prelude} function outer() { type Open = Record<string, Command>; const commands: Open = { start: startCommand }; }`,
+			errors: [error],
+		},
+		{
 			code: `${prelude} type Index<T> = Record<string, T>; const commands: Index<Command> = { start: startCommand };`,
+			errors: [error],
+		},
+		{
+			code: `${prelude} type Identity<T> = T; const commands: Identity<Record<string, Command>> = { start: startCommand };`,
 			errors: [error],
 		},
 		{
