@@ -1,5 +1,5 @@
 ---
-name: anti-slop
+name: effect-program-design
 description: >-
     Design, write, review, and test production Effect v4 programs: deep services and layers, schemas,
     tagged errors, observability, Config, persistence, resources, concurrency, schedules, workers,
