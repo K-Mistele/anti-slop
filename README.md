@@ -49,6 +49,7 @@ export default defineConfig({
   ],
   rules: {
     "anti-slop/no-chained-type-assertions": "error",
+    "anti-slop/no-comments": "error",
     "anti-slop/no-conditional-empty-object-spread": "error",
     "anti-slop/no-known-value-widening": "error",
     "anti-slop/no-module-mocking": "error",
@@ -83,7 +84,11 @@ export default defineConfig({
     }
   ],
   rules: {
-    "anti-slop-effect/no-service-constructor-imports": "error"
+    "anti-slop-effect/no-manual-effect-error-tag": "error",
+    "anti-slop-effect/no-manual-tag-comparison": "error",
+    "anti-slop-effect/no-manual-tagged-construction": "error",
+    "anti-slop-effect/no-service-constructor-imports": "error",
+    "anti-slop-effect/prefer-effect-match": "error"
   }
 });
 ```
@@ -93,6 +98,7 @@ export default defineConfig({
 ### Generic rules
 
 - `no-chained-type-assertions` — rejects nested type assertions that fabricate evidence.
+- `no-comments` — rejects implementation comments so code must communicate intent directly. `SAFETY:` comments required by assertion policy remain allowed.
 - `no-conditional-empty-object-spread` — rejects conditional spreads that use `{}` to omit fields.
 - `no-known-value-widening` — rejects explicit broad target types that discard known value evidence.
 - `no-module-mocking` — rejects Vitest and Jest module mocks in favor of real dependency seams.
@@ -110,7 +116,11 @@ export default defineConfig({
 
 ### Effect rules
 
+- `no-manual-effect-error-tag` — rejects manual `_tag` comparisons and switches inside broad `Effect.catch`, `Effect.catchAll`, and `Effect.catchIf` handlers in favor of tagged error handlers.
+- `no-manual-tag-comparison` — rejects direct `_tag` comparisons and `_tag` switches in favor of `Match`, `Predicate.isTagged`, or tagged-enum matching.
+- `no-manual-tagged-construction` — rejects literal `_tag` object construction in favor of Schema, tagged class/error, or `Data.taggedEnum` constructors. `Match.when` and `Match.not` patterns remain allowed.
 - `no-service-constructor-imports` — rejects relative project imports of exported `make<CapabilityName>` constructors outside `*.test.*` and `*.spec.*` files. Runtime callers should import the owning Layer and yield the contextual service instead. Package imports and static constructors such as `WorkspaceName.make` are outside the rule.
+- `prefer-effect-match` — rejects chained literal ternaries over the same value in favor of Effect's `Match` API.
 
 ## Violation examples
 
@@ -120,6 +130,13 @@ Each snippet below is rejected by the named rule.
 
 ```ts
 const user = input as object as User;
+```
+
+### `no-comments`
+
+```ts
+// Convert the input before saving it.
+const saved = save(convert(input));
 ```
 
 ### `no-conditional-empty-object-spread`
@@ -201,6 +218,22 @@ import { makeIssueService } from "./issue-service.ts";
 ```
 
 Import the owning Layer and yield `IssueService` instead. Focused `*.test.*` and `*.spec.*` files may import the constructor directly.
+
+### Effect: tagged values and matching
+
+```ts
+if (result._tag === "Ready") useReady(result);
+
+const result = { _tag: "Ready", value };
+
+Effect.catch((error) =>
+  error._tag === "NotFound" ? recover : Effect.fail(error)
+);
+
+const label = kind === "a" ? "A" : kind === "b" ? "B" : "Other";
+```
+
+Use `Predicate.isTagged` for reusable predicates, `Match` or tagged-enum matching for branching, tagged constructors for values, and `Effect.catchTag`/`Effect.catchTags` for tagged errors.
 
 ### `no-unknown-parameters`
 

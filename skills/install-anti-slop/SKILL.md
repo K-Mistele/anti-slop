@@ -61,6 +61,7 @@ Install the bundled Oxlint plugin into the current repository and integrate it w
    ```json
    {
      "anti-slop/no-chained-type-assertions": "error",
+     "anti-slop/no-comments": "error",
      "anti-slop/no-conditional-empty-object-spread": "error",
      "anti-slop/no-known-value-widening": "error",
      "anti-slop/no-module-mocking": "error",
@@ -88,7 +89,11 @@ Install the bundled Oxlint plugin into the current repository and integrate it w
      },
    ],
    rules: {
+     "anti-slop-effect/no-manual-effect-error-tag": "error",
+     "anti-slop-effect/no-manual-tag-comparison": "error",
+     "anti-slop-effect/no-manual-tagged-construction": "error",
      "anti-slop-effect/no-service-constructor-imports": "error",
+     "anti-slop-effect/prefer-effect-match": "error",
    },
    ```
 
