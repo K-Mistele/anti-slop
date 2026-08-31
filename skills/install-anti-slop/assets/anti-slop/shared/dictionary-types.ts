@@ -328,15 +328,6 @@ export function classifyUnsafeDictionary(
 	return null;
 }
 
-function resolvesToDictionary(
-	type: ESTree.TSType,
-	environment: TypeEnvironment,
-	substitutions: TypeAliasEnvironment,
-	resolvingAliases: ReadonlySet<string>,
-): boolean {
-	return dictionaryValueTypes(type, environment, substitutions, resolvingAliases).length > 0;
-}
-
 export function classifyWideningTarget(
 	type: ESTree.TSType,
 	environment: TypeEnvironment,
@@ -359,15 +350,25 @@ export function classifyWideningTarget(
 		const wrapped = unwrapped.typeArguments?.params[0];
 		return wrapped === undefined ? null : classifyWideningTarget(wrapped, environment);
 	}
-	if (name === "Record" && isBuiltIn(name, environment)) return { kind: "open dictionary" };
+	if (name === "Record" && isBuiltIn(name, environment)) {
+		return hasBroadRecordKey(unwrapped, environment, new Map())
+			? { kind: "open dictionary" }
+			: null;
+	}
 	const alias = environment.aliases.get(name);
 	if (alias === undefined) return null;
 	if ((alias.typeParameters?.params.length ?? 0) > 0) {
 		const substitutions = aliasSubstitution(alias, unwrapped, new Map());
-		return substitutions !== null &&
-			resolvesToDictionary(alias.typeAnnotation, environment, substitutions, new Set([name]))
-			? { kind: "generic container" }
-			: null;
+		const resolved =
+			substitutions === null
+				? null
+				: classifyAliasBroadTarget(
+						alias.typeAnnotation,
+						environment,
+						substitutions,
+						new Set([name]),
+					);
+		return resolved?.kind === "open dictionary" ? { kind: "generic container" } : null;
 	}
 	const substitutions = aliasSubstitution(alias, unwrapped, new Map());
 	if (substitutions === null) return null;
@@ -380,10 +381,20 @@ export function classifyWideningTarget(
 	return resolved;
 }
 
+function hasBroadRecordKey(
+	type: ESTree.TSTypeReference,
+	environment: TypeEnvironment,
+	substitutions: TypeAliasEnvironment,
+): boolean {
+	const key = type.typeArguments?.params[0];
+	return key === undefined || isBroadMappedKey(key, environment, substitutions);
+}
+
 function isBroadMappedKey(
 	type: ESTree.TSType,
 	environment: TypeEnvironment,
 	substitutions: TypeAliasEnvironment,
+	visitedAliases: ReadonlySet<string> = new Set(),
 ): boolean {
 	const unwrapped = unwrapTransparentType(type);
 	if (
@@ -394,8 +405,8 @@ function isBroadMappedKey(
 		return true;
 	}
 	if (unwrapped.type === "TSUnionType") {
-		return unwrapped.types.every((member) =>
-			isBroadMappedKey(member, environment, substitutions),
+		return unwrapped.types.some((member) =>
+			isBroadMappedKey(member, environment, substitutions, visitedAliases),
 		);
 	}
 	if (unwrapped.type !== "TSTypeReference") return false;
@@ -403,9 +414,20 @@ function isBroadMappedKey(
 	if (name === null) return false;
 	const substitution = substitutions.get(name);
 	if (substitution !== undefined && !isUnappliedReferenceTo(substitution, name)) {
-		return isBroadMappedKey(substitution, environment, substitutions);
+		return isBroadMappedKey(substitution, environment, substitutions, visitedAliases);
 	}
-	return name === "PropertyKey" && isBuiltIn(name, environment);
+	if (name === "PropertyKey" && isBuiltIn(name, environment)) return true;
+	const alias = environment.aliases.get(name);
+	if (
+		alias === undefined ||
+		(alias.typeParameters?.params.length ?? 0) > 0 ||
+		visitedAliases.has(name)
+	) {
+		return false;
+	}
+	const nextVisited = new Set(visitedAliases);
+	nextVisited.add(name);
+	return isBroadMappedKey(alias.typeAnnotation, environment, substitutions, nextVisited);
 }
 
 function classifyAliasBroadTarget(
@@ -448,7 +470,9 @@ function classifyAliasBroadTarget(
 			: classifyAliasBroadTarget(wrapped, environment, substitutions, resolvingAliases);
 	}
 	if (name === "Record" && isBuiltIn(name, environment)) {
-		return { kind: "open dictionary" };
+		return hasBroadRecordKey(unwrapped, environment, substitutions)
+			? { kind: "open dictionary" }
+			: null;
 	}
 	const alias = environment.aliases.get(name);
 	if (alias === undefined || resolvingAliases.has(name)) return null;

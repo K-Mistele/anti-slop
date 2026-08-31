@@ -1,10 +1,12 @@
 import { defineRule } from "@oxlint/plugins";
 
-import type { ESTree, SourceCode } from "@oxlint/plugins";
+import type { ESTree } from "@oxlint/plugins";
 
+import {
+	functionParameterBindingName,
+	functionParameterTypeAnnotation,
+} from "../shared/function-parameters.ts";
 import { lexicalTypeParameterNames } from "../shared/lexical-type-parameters.ts";
-
-type Parameter = ESTree.ParamPattern;
 type ParameterOwner =
 	| ESTree.ArrowFunctionExpression
 	| ESTree.Function
@@ -13,25 +15,6 @@ type ParameterOwner =
 	| ESTree.TSConstructorType
 	| ESTree.TSFunctionType
 	| ESTree.TSMethodSignature;
-
-function parameterAnnotation(parameter: Parameter): ESTree.TSTypeAnnotation | null | undefined {
-	if (parameter.type === "TSParameterProperty") {
-		return parameterAnnotation(parameter.parameter);
-	}
-	if (parameter.type === "RestElement") {
-		return parameter.typeAnnotation ?? parameterAnnotation(parameter.argument);
-	}
-	if (parameter.type === "AssignmentPattern") {
-		return parameter.typeAnnotation ?? parameter.left.typeAnnotation;
-	}
-	return parameter.typeAnnotation;
-}
-
-function parameterName(parameter: Parameter, sourceCode: SourceCode): string {
-	return parameter.type === "Identifier"
-		? parameter.name
-		: sourceCode.getText(parameter).replace(/\s*:\s*object\s*$/u, "");
-}
 
 /** Ban the broad object type on function inputs, including local aliases to object. */
 export const noObjectParametersRule = defineRule({
@@ -86,13 +69,13 @@ export const noObjectParametersRule = defineRule({
 				context.sourceCode.visitorKeys,
 			);
 			for (const parameter of node.params) {
-				const annotation = parameterAnnotation(parameter);
+				const annotation = functionParameterTypeAnnotation(parameter);
 				if (annotation === null || annotation === undefined) continue;
 				if (!resolvesToObject(annotation.typeAnnotation, shadowedAliases)) continue;
 				context.report({
 					node: annotation.typeAnnotation,
 					messageId: "objectParameter",
-					data: { parameter: parameterName(parameter, context.sourceCode) },
+					data: { parameter: functionParameterBindingName(parameter, context.sourceCode) },
 				});
 			}
 		};

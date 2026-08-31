@@ -20,17 +20,32 @@ function isConstAssertion(node: TypeAssertion): boolean {
   );
 }
 
+function hasSafetyJustificationBefore(
+  sourceCode: SourceCode,
+  owner: ESTree.Node,
+  assertion: TypeAssertion,
+): boolean {
+  return sourceCode
+    .getCommentsBefore(owner)
+    .some(
+      (comment) =>
+        comment.end <= assertion.start && /\bSAFETY\s*:\s*\S/u.test(comment.value),
+    );
+}
+
 function hasSafetyComment(sourceCode: SourceCode, node: TypeAssertion): boolean {
   let current: ESTree.Node = node;
   while (true) {
-    if (
-      sourceCode
-        .getCommentsBefore(current)
-        .some((comment) => comment.end <= node.start && /\bSAFETY\s*:/u.test(comment.value))
-    ) {
-      return true;
+    if (hasSafetyJustificationBefore(sourceCode, current, node)) return true;
+    if (commentOwnerKinds.has(current.type)) {
+      const exportDeclaration = current.parent;
+      return (
+        exportDeclaration.type === "ExportNamedDeclaration" &&
+        exportDeclaration.declaration === current &&
+        hasSafetyJustificationBefore(sourceCode, exportDeclaration, node)
+      );
     }
-    if (commentOwnerKinds.has(current.type) || current.parent.type === "Program") return false;
+    if (current.parent.type === "Program") return false;
     current = current.parent;
   }
 }

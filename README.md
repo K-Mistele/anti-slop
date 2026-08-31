@@ -101,7 +101,7 @@ export default defineConfig({
 - `no-reflect-get` — rejects `Reflect.get` in favor of typed property access or boundary parsing.
 - `no-runtime-typeof` — requires boundary parsing instead of ad hoc `typeof` narrowing.
 - `no-shape-in-symbol-names` — rejects `shape` in symbol names.
-- `no-unknown-parameters` — rejects `unknown` inputs except the explicit `cause` convention.
+- `no-unknown-parameters` — rejects `unknown` inputs except the explicit `cause` convention and the subject of a type predicate.
 - `no-unknown-returns` — rejects function contracts that return `unknown` or `Promise<unknown>`.
 - `no-unknown-type-aliases` — rejects aliases that merely conceal `unknown`.
 - `no-unsafe-dictionary-type` — rejects dictionary value contracts based on `unknown`, `any`, `object`, `{}`, and semantic equivalents.
@@ -207,6 +207,9 @@ Import the owning Layer and yield `IssueService` instead. Focused `*.test.*` and
 ```ts
 function handle(input: unknown) {}
 ```
+
+A type predicate may accept `unknown` for the parameter it narrows; other `unknown`
+parameters on the same function remain rejected.
 
 ### `no-unknown-returns`
 

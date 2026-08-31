@@ -30,6 +30,11 @@ tester.run("anti-slop/no-known-value-widening", noKnownValueWideningRule, {
 		`${prelude} interface Commands { readonly start: Command } function create(): Commands { return { start: startCommand }; }`,
 		`${prelude} declare function make(): Record<string, Command>; const commands: Record<string, Command> = make();`,
 		`${prelude} import { Commands } from './types'; const commands: Commands = { start: startCommand };`,
+		`${prelude} type Diet = 'vegan' | 'omnivore'; const labels: Record<Diet, string> = { vegan: 'V', omnivore: 'O' };`,
+		`${prelude} type Diet = 'vegan' | 'omnivore'; type Labels = Record<Diet, string>; const labels: Labels = { vegan: 'V', omnivore: 'O' };`,
+		`${prelude} type Diet = 'vegan' | 'omnivore'; const labels: Readonly<Record<Diet, string>> = { vegan: 'V', omnivore: 'O' };`,
+		`${prelude} const labels: Record<'a' | 'b', number> = { a: 1, b: 2 };`,
+		`${prelude} type Index<Key extends PropertyKey, Value> = Record<Key, Value>; const commands: Index<'start', Command> = { start: startCommand };`,
 	],
 	invalid: [
 		{ code: "const value: unknown = {};", errors: [error] },
@@ -106,6 +111,18 @@ tester.run("anti-slop/no-known-value-widening", noKnownValueWideningRule, {
 		},
 		{
 			code: `${prelude} type Index<T = Command> = Record<string, T>; const commands: Index = { start: startCommand };`,
+			errors: [error],
+		},
+		{
+			code: `${prelude} type Key = string; const commands: Record<Key, Command> = { start: startCommand };`,
+			errors: [error],
+		},
+		{
+			code: `${prelude} const commands: Record<PropertyKey, Command> = { start: startCommand };`,
+			errors: [error],
+		},
+		{
+			code: `${prelude} const commands: Record<string | 'start', Command> = { start: startCommand };`,
 			errors: [error],
 		},
 		{ code: "const value: unknown = 1;", errors: [error] },

@@ -72,7 +72,19 @@ function isPlainAliasConsumerUse(node: ESTree.TSType, environment: TypeEnvironme
 	return name !== null && environment.aliases.has(name) && !isInsideTypeAliasDeclaration(node);
 }
 
+function isInsideTypeParameterConstraint(node: ESTree.TSType): boolean {
+	let child: ESTree.Node = node;
+	let parent: ESTree.Node | null = child.parent;
+	while (parent !== null && parent.type !== "Program") {
+		if (parent.type === "TSTypeParameter" && parent.constraint === child) return true;
+		child = parent;
+		parent = child.parent;
+	}
+	return false;
+}
+
 function shouldReportType(node: ESTree.TSType, environment: TypeEnvironment): boolean {
+	if (isInsideTypeParameterConstraint(node)) return false;
 	if (isPlainAliasConsumerUse(node, environment)) return false;
 	if (classifyUnsafeDictionary(node, environment) === null) return false;
 	let current: ESTree.Node | null = node.parent;
