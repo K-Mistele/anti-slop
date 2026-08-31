@@ -28,5 +28,17 @@ tester.run("anti-slop/no-object-parameters", noObjectParametersRule, {
 			code: "type Item = object; type Fallback<Input> = Input extends infer Item ? string : (value: Item) => void;",
 			errors: [error],
 		},
+		{
+			code: "function consume(value: object = {}): void {}",
+			errors: [{ ...error, data: { parameter: "value" } }],
+		},
+		{
+			code: "function consume({ value }: object = {}): void {}",
+			errors: [{ ...error, data: { parameter: "{ value }" } }],
+		},
+		{
+			code: "type Bag = object; function consume({ value }: Bag): void {}",
+			errors: [{ ...error, data: { parameter: "{ value }" } }],
+		},
 	],
 });

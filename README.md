@@ -94,14 +94,14 @@ export default defineConfig({
 
 - `no-chained-type-assertions` — rejects nested type assertions that fabricate evidence.
 - `no-conditional-empty-object-spread` — rejects conditional spreads that use `{}` to omit fields.
-- `no-known-value-widening` — rejects explicit broad target types that discard known value evidence.
+- `no-known-value-widening` — rejects explicit broad target types that discard known value evidence, including known arguments passed to local `unknown` type predicates.
 - `no-module-mocking` — rejects Vitest and Jest module mocks in favor of real dependency seams.
 - `no-object-parameters` — rejects the broad `object` type on function inputs.
 - `no-reflect-apply` — rejects `Reflect.apply` in favor of typed function calls.
 - `no-reflect-get` — rejects `Reflect.get` in favor of typed property access or boundary parsing.
 - `no-runtime-typeof` — requires boundary parsing instead of ad hoc `typeof` narrowing.
 - `no-shape-in-symbol-names` — rejects `shape` in symbol names.
-- `no-unknown-parameters` — rejects `unknown` inputs except the explicit `cause` convention.
+- `no-unknown-parameters` — rejects `unknown` inputs except the explicit `cause` convention and the subject of a type predicate.
 - `no-unknown-returns` — rejects function contracts that return `unknown` or `Promise<unknown>`.
 - `no-unknown-type-aliases` — rejects aliases that merely conceal `unknown`.
 - `no-unsafe-dictionary-type` — rejects dictionary value contracts based on `unknown`, `any`, `object`, `{}`, and semantic equivalents.
@@ -139,6 +139,19 @@ const handlers: Record<string, Handler> = {
 ```
 
 This discards the known `start` key. Preserve inference or use `satisfies Record<string, Handler>` instead.
+
+Known values must not be widened back to `unknown` through a local type predicate:
+
+```ts
+function isUser(value: unknown): value is User {
+  return UserSchema.safeParse(value).success;
+}
+
+declare const user: User;
+isUser(user);
+```
+
+Call the predicate at the unparsed boundary, while the argument is still `unknown`.
 
 ### `no-module-mocking`
 
@@ -207,6 +220,9 @@ Import the owning Layer and yield `IssueService` instead. Focused `*.test.*` and
 ```ts
 function handle(input: unknown) {}
 ```
+
+A type predicate may accept `unknown` for the parameter it narrows; other `unknown`
+parameters on the same function remain rejected.
 
 ### `no-unknown-returns`
 

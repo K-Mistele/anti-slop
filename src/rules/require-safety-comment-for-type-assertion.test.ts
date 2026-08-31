@@ -15,6 +15,8 @@ tester.run(
       "// SAFETY: The parser established the UserId invariant.\nconst id = value as UserId;",
       "function parse(): UserId {\n// SAFETY: Validation above established the UserId invariant.\nreturn value as UserId;\n}",
       "const id = /* SAFETY: Validation established the invariant. */ value as UserId;",
+      "// SAFETY: The parser established the exported UserId invariant.\nexport const id = value as UserId;",
+      "/* SAFETY:\n * The parser established the exported UserId invariant.\n */\nexport const id = value as UserId;",
     ],
     invalid: [
       { code: "const id = value as UserId;", errors: [error] },
@@ -22,6 +24,14 @@ tester.run(
       { code: "const id = value as UserId; // SAFETY: Too late.", errors: [error] },
       {
         code: "// This cast seems fine.\nconst id = value as UserId;",
+        errors: [error],
+      },
+      { code: "// SAFETY:\nconst id = value as UserId;", errors: [error] },
+      { code: "// SAFETY:   \nconst id = value as UserId;", errors: [error] },
+      { code: "const id = /* SAFETY: */ value as UserId;", errors: [error] },
+      { code: "export const id = value as UserId;", errors: [error] },
+      {
+        code: "// This is not a safety justification.\nexport const id = value as UserId;",
         errors: [error],
       },
     ],
