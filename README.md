@@ -94,7 +94,7 @@ export default defineConfig({
 
 - `no-chained-type-assertions` — rejects nested type assertions that fabricate evidence.
 - `no-conditional-empty-object-spread` — rejects conditional spreads that use `{}` to omit fields.
-- `no-known-value-widening` — rejects explicit broad target types that discard known value evidence.
+- `no-known-value-widening` — rejects explicit broad target types that discard known value evidence, including known arguments passed to local `unknown` type predicates.
 - `no-module-mocking` — rejects Vitest and Jest module mocks in favor of real dependency seams.
 - `no-object-parameters` — rejects the broad `object` type on function inputs.
 - `no-reflect-apply` — rejects `Reflect.apply` in favor of typed function calls.
@@ -139,6 +139,19 @@ const handlers: Record<string, Handler> = {
 ```
 
 This discards the known `start` key. Preserve inference or use `satisfies Record<string, Handler>` instead.
+
+Known values must not be widened back to `unknown` through a local type predicate:
+
+```ts
+function isUser(value: unknown): value is User {
+  return UserSchema.safeParse(value).success;
+}
+
+declare const user: User;
+isUser(user);
+```
+
+Call the predicate at the unparsed boundary, while the argument is still `unknown`.
 
 ### `no-module-mocking`
 
