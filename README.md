@@ -56,6 +56,7 @@ export default defineConfig({
     "anti-slop/no-object-parameters": "error",
     "anti-slop/no-reflect-apply": "error",
     "anti-slop/no-reflect-get": "error",
+    "anti-slop/no-reprovide-ambient-service": "error",
     "anti-slop/no-runtime-typeof": "error",
     "anti-slop/no-shape-in-symbol-names": "error",
     "anti-slop/no-unknown-parameters": "error",
@@ -105,6 +106,7 @@ export default defineConfig({
 - `no-object-parameters` — rejects the broad `object` type on function inputs.
 - `no-reflect-apply` — rejects `Reflect.apply` in favor of typed function calls.
 - `no-reflect-get` — rejects `Reflect.get` in favor of typed property access or boundary parsing.
+- `no-reprovide-ambient-service` — rejects yielding an Effect service only to provide that same value back into a nested operation.
 - `no-runtime-typeof` — requires boundary parsing instead of ad hoc `typeof` narrowing.
 - `no-shape-in-symbol-names` — rejects `shape` in symbol names.
 - `no-unknown-parameters` — rejects `unknown` inputs except the explicit `cause` convention.
