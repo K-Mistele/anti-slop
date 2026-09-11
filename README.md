@@ -50,7 +50,7 @@ export default defineConfig({
   rules: {
     "anti-slop/no-chained-type-assertions": "error",
     "anti-slop/no-comments": "error",
-    "anti-slop/no-conditional-empty-object-spread": "error",
+    "anti-slop/no-conditional-spread": "error",
     "anti-slop/no-known-value-widening": "error",
     "anti-slop/no-module-mocking": "error",
     "anti-slop/no-object-parameters": "error",
@@ -100,7 +100,7 @@ export default defineConfig({
 
 - `no-chained-type-assertions` — rejects nested type assertions that fabricate evidence.
 - `no-comments` — rejects implementation comments so code must communicate intent directly. `SAFETY:` comments required by assertion policy remain allowed.
-- `no-conditional-empty-object-spread` — rejects conditional spreads that use `{}` to omit fields.
+- `no-conditional-spread` — rejects ternary and logical expressions in object, array, call, and JSX spreads.
 - `no-known-value-widening` — rejects explicit broad target types that discard known value evidence.
 - `no-module-mocking` — rejects Vitest and Jest module mocks in favor of real dependency seams.
 - `no-object-parameters` — rejects the broad `object` type on function inputs.
@@ -141,11 +141,11 @@ const user = input as object as User;
 const saved = save(convert(input));
 ```
 
-### `no-conditional-empty-object-spread`
+### `no-conditional-spread`
 
 ```ts
 const options = {
-  ...(timeout !== undefined ? { timeout } : {}),
+  ...(timeout ?? defaults),
 };
 ```
 
