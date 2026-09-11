@@ -48,6 +48,7 @@ export default defineConfig({
     { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" },
   ],
   rules: {
+    "anti-slop/max-ternary-depth": ["error", { "maxDepth": 2 }],
     "anti-slop/no-chained-type-assertions": "error",
     "anti-slop/no-comments": "error",
     "anti-slop/no-conditional-spread": "error",
@@ -98,6 +99,7 @@ export default defineConfig({
 
 ### Generic rules
 
+- `max-ternary-depth` — limits ternary expression chains to two levels by default; configure `maxDepth` to change the limit.
 - `no-chained-type-assertions` — rejects nested type assertions that fabricate evidence.
 - `no-comments` — rejects implementation comments so code must communicate intent directly. `SAFETY:` comments required by assertion policy remain allowed.
 - `no-conditional-spread` — rejects ternary and logical expressions in object, array, call, and JSX spreads.
@@ -127,6 +129,12 @@ export default defineConfig({
 ## Violation examples
 
 Each snippet below is rejected by the named rule.
+
+### `max-ternary-depth`
+
+```ts
+const value = first ? one : second ? two : third ? three : fallback;
+```
 
 ### `no-chained-type-assertions`
 
