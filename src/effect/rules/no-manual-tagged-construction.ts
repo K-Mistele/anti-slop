@@ -1,10 +1,6 @@
 import { defineRule } from "@oxlint/plugins";
 
-import {
-	isMatchPatternObject,
-	isStringLiteral,
-	propertyName,
-} from "../shared/tagged-values.ts";
+import { propertyName } from "../shared/tagged-values.ts";
 
 export const noManualTaggedConstructionRule = defineRule({
 	meta: {
@@ -21,12 +17,10 @@ export const noManualTaggedConstructionRule = defineRule({
 	createOnce(context) {
 		return {
 			ObjectExpression(node) {
-				if (isMatchPatternObject(node)) return;
 				const tag = node.properties.find(
 					(property) =>
 						property.type === "Property" &&
-						propertyName(property) === "_tag" &&
-						isStringLiteral(property.value),
+						propertyName(property) === "_tag",
 				);
 				if (tag !== undefined) {
 					context.report({ node: tag, messageId: "manualConstruction" });
