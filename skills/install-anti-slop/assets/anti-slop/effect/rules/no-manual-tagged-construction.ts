@@ -1,6 +1,15 @@
-import { defineRule } from "@oxlint/plugins";
+import { defineRule, type ESTree } from "@oxlint/plugins";
 
 import { propertyName } from "../shared/tagged-values.ts";
+
+const isTagProperty = (
+	property:
+		| ESTree.ObjectProperty
+		| ESTree.PropertyDefinition
+		| ESTree.TSPropertySignature,
+): boolean =>
+	(property.key.type === "Identifier" && property.key.name === "_tag") ||
+	(property.key.type === "Literal" && property.key.value === "_tag");
 
 export const noManualTaggedConstructionRule = defineRule({
 	meta: {
@@ -12,6 +21,8 @@ export const noManualTaggedConstructionRule = defineRule({
 		messages: {
 			manualConstruction:
 				"Use the existing Schema tagged `.make`, tagged class/error constructor, or Data.taggedEnum variant constructor instead of writing a literal `_tag` object.",
+			manualDeclaration:
+				"Declare tagged values with Schema.TaggedStruct, Schema.TaggedClass, Schema.TaggedError, or Schema.TaggedUnion instead of writing a literal `_tag` property.",
 		},
 	},
 	createOnce(context) {
@@ -24,6 +35,16 @@ export const noManualTaggedConstructionRule = defineRule({
 				);
 				if (tag !== undefined) {
 					context.report({ node: tag, messageId: "manualConstruction" });
+				}
+			},
+			PropertyDefinition(node) {
+				if (isTagProperty(node)) {
+					context.report({ node, messageId: "manualDeclaration" });
+				}
+			},
+			TSPropertySignature(node) {
+				if (isTagProperty(node)) {
+					context.report({ node, messageId: "manualDeclaration" });
 				}
 			},
 		};
