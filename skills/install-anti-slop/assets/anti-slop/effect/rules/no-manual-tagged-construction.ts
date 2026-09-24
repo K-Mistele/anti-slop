@@ -20,7 +20,7 @@ export const noManualTaggedConstructionRule = defineRule({
 		},
 		messages: {
 			manualConstruction:
-				"Use the existing Schema tagged `.make`, tagged class/error constructor, or Data.taggedEnum variant constructor instead of writing a literal `_tag` object.",
+				"Use the existing Schema tagged `.make` or tagged class/error constructor instead of writing a literal `_tag` object.",
 			manualDeclaration:
 				"Declare tagged values with Schema.TaggedStruct, Schema.TaggedClass, Schema.TaggedError, or Schema.TaggedUnion instead of writing a literal `_tag` property.",
 		},
