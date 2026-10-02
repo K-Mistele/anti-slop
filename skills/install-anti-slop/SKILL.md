@@ -94,12 +94,30 @@ Install the bundled Oxlint plugin into the current repository and integrate it w
      "anti-slop-effect/no-manual-effect-error-tag": "error",
      "anti-slop-effect/no-manual-tag-comparison": "error",
      "anti-slop-effect/no-manual-tagged-construction": "error",
+     "anti-slop-effect/no-manual-tagged-type": "error",
      "anti-slop-effect/no-service-constructor-imports": "error",
      "anti-slop-effect/prefer-effect-match": "error",
    },
    ```
 
    Merge these entries with the generic plugin configuration rather than replacing it. Do not enable the Effect plugin merely because Effect appears transitively in a lockfile; require a direct package-manifest dependency or an explicit user request. The rule covers relative project imports. Report package-alias imports as a current limitation rather than pretending they are enforced.
+
+   For Effect repositories, also install `@effect/tsgo` and enable every Effect language service rule as an error. Pick the newest `@effect/tsgo` whose README lists the installed `oxlint`, `oxlint-tsgolint`, and `typescript` versions under "Supported Package Versions"; Vite+ pins its own Oxlint, so check that version too. Install `@effect/tsgo` and `oxlint-tsgolint` as development dependencies, add `"prepare": "effect-tsgo patch --oxlint"` and run it, and add `{ "name": "@effect/language-service", "diagnostics": false }` to `compilerOptions.plugins` in `tsconfig.json`. Then extend every preset and promote each rule:
+
+   ```ts
+   import { presets } from "@effect/tsgo/oxlint-presets";
+
+   const effectTsgoRules = Object.values(presets).flatMap((preset) =>
+     Object.keys(preset.rules ?? {}),
+   );
+
+   export default defineConfig({
+     extends: Object.values(presets),
+     rules: {
+       ...Object.fromEntries(effectTsgoRules.map((rule) => [rule, "error"])),
+     },
+   });
+   ```
 
 5. Run the repository's lint command and typecheck. For Vite+, run the repository's full `vp check` command after adding both lint and format ignores. If findings appear in owned project source, report them and fix them only when the user asked for migration/cleanup. Do not suppress rules, weaken rule severity, add unsafe casts, or mechanically launder types to make lint pass.
 

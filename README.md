@@ -89,11 +89,33 @@ export default defineConfig({
     "anti-slop-effect/no-manual-effect-error-tag": "error",
     "anti-slop-effect/no-manual-tag-comparison": "error",
     "anti-slop-effect/no-manual-tagged-construction": "error",
+    "anti-slop-effect/no-manual-tagged-type": "error",
     "anti-slop-effect/no-service-constructor-imports": "error",
     "anti-slop-effect/prefer-effect-match": "error"
   }
 });
 ```
+
+### Effect language service
+
+Effect repositories should also run every `@effect/tsgo` diagnostic as an Oxlint error. Install `@effect/tsgo` and `oxlint-tsgolint` at versions that support your `oxlint` and `typescript`, add `"prepare": "effect-tsgo patch --oxlint"`, and add `{ "name": "@effect/language-service", "diagnostics": false }` to `compilerOptions.plugins`. Then extend every preset and promote each rule:
+
+```ts
+import { presets } from "@effect/tsgo/oxlint-presets";
+
+const effectTsgoRules = Object.values(presets).flatMap((preset) =>
+  Object.keys(preset.rules ?? {}),
+);
+
+export default defineConfig({
+  extends: Object.values(presets),
+  rules: {
+    ...Object.fromEntries(effectTsgoRules.map((rule) => [rule, "error"])),
+  },
+});
+```
+
+This repository lints itself the same way in `oxlint.config.ts`.
 
 ## Rules
 
@@ -122,7 +144,8 @@ export default defineConfig({
 
 - `no-manual-effect-error-tag` — rejects manual `_tag` comparisons and switches inside broad `Effect.catch`, `Effect.catchAll`, and `Effect.catchIf` handlers in favor of tagged error handlers.
 - `no-manual-tag-comparison` — rejects direct `_tag` comparisons and `_tag` switches in favor of `Match`, `Predicate.isTagged`, or tagged-enum matching.
-- `no-manual-tagged-construction` — rejects literal `_tag` object construction in favor of Schema, tagged class/error, or `Data.taggedEnum` constructors. `Match.when` and `Match.not` patterns remain allowed.
+- `no-manual-tagged-construction` — rejects literal `_tag` object construction in favor of Schema, tagged class/error, or `Data.taggedEnum` constructors. `Match.when` and `Match.not` patterns remain allowed. Also rejects literal `_tag` class fields.
+- `no-manual-tagged-type` — rejects `_tag` in type literals and interfaces. Define tagged values with Schema or Data tagged constructors and infer types with `typeof X.Type`.
 - `no-service-constructor-imports` — rejects relative project imports of exported `make<CapabilityName>` constructors outside `*.test.*` and `*.spec.*` files. Runtime callers should import the owning Layer and yield the contextual service instead. Package imports and static constructors such as `WorkspaceName.make` are outside the rule.
 - `prefer-effect-match` — rejects chained literal ternaries over the same value in favor of Effect's `Match` API.
 
