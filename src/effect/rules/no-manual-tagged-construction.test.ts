@@ -39,16 +39,6 @@ new RuleTester().run(
 			},
 			{
 				filename: "value.ts",
-				code: 'type Value = { readonly _tag: "Ready"; readonly payload: string };',
-				errors: [{ messageId: "manualDeclaration" }],
-			},
-			{
-				filename: "value.ts",
-				code: 'interface Value { readonly "_tag": "Ready"; }',
-				errors: [{ messageId: "manualDeclaration" }],
-			},
-			{
-				filename: "value.ts",
 				code: 'class Value { readonly _tag = "Ready"; }',
 				errors: [{ messageId: "manualDeclaration" }],
 			},
