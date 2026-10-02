@@ -94,6 +94,7 @@ Install the bundled Oxlint plugin into the current repository and integrate it w
      "anti-slop-effect/no-manual-effect-error-tag": "error",
      "anti-slop-effect/no-manual-tag-comparison": "error",
      "anti-slop-effect/no-manual-tagged-construction": "error",
+     "anti-slop-effect/no-manual-tagged-type": "error",
      "anti-slop-effect/no-service-constructor-imports": "error",
      "anti-slop-effect/prefer-effect-match": "error",
    },
