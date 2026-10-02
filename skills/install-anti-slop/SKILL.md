@@ -102,7 +102,7 @@ Install the bundled Oxlint plugin into the current repository and integrate it w
 
    Merge these entries with the generic plugin configuration rather than replacing it. Do not enable the Effect plugin merely because Effect appears transitively in a lockfile; require a direct package-manifest dependency or an explicit user request. The rule covers relative project imports. Report package-alias imports as a current limitation rather than pretending they are enforced.
 
-   For Effect repositories, also install `@effect/tsgo` and enable every Effect language service rule as an error. Pick the newest `@effect/tsgo` whose README lists the installed `oxlint`, `oxlint-tsgolint`, and `typescript` versions under "Supported Package Versions"; Vite+ pins its own Oxlint, so check that version too. Install `@effect/tsgo` and `oxlint-tsgolint` as development dependencies, add `"prepare": "effect-tsgo patch --oxlint"` and run it, and add `{ "name": "@effect/language-service", "diagnostics": false }` to `compilerOptions.plugins` in `tsconfig.json`. Then extend every preset and promote each rule:
+   For Effect repositories, also install `@effect/tsgo` and enable every Effect language service rule as an error. Pick the newest `@effect/tsgo` whose README lists the installed `oxlint`, `oxlint-tsgolint`, and `typescript` versions under "Supported Package Versions"; Vite+ pins its own Oxlint, so check that version too. Install `@effect/tsgo` and `oxlint-tsgolint` as development dependencies, add `"prepare": "effect-tsgo patch --oxlint"` and run it, and add `{ "name": "@effect/language-service", "diagnostics": false }` to `compilerOptions.plugins` in `tsconfig.json`. Then extend every preset and promote each rule except `missing-pipeable-signature`, which demands Effect-style data-last overloads on every exported multi-argument function:
 
    ```ts
    import { presets } from "@effect/tsgo/oxlint-presets";
@@ -115,6 +115,7 @@ Install the bundled Oxlint plugin into the current repository and integrate it w
      extends: Object.values(presets),
      rules: {
        ...Object.fromEntries(effectTsgoRules.map((rule) => [rule, "error"])),
+       "effecttsgo/missing-pipeable-signature": "off",
      },
    });
    ```
