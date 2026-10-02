@@ -5,8 +5,7 @@ import { propertyName } from "../shared/tagged-values.ts";
 const isTagProperty = (
 	property:
 		| ESTree.ObjectProperty
-		| ESTree.PropertyDefinition
-		| ESTree.TSPropertySignature,
+		| ESTree.PropertyDefinition,
 ): boolean =>
 	(property.key.type === "Identifier" && property.key.name === "_tag") ||
 	(property.key.type === "Literal" && property.key.value === "_tag");
@@ -22,7 +21,7 @@ export const noManualTaggedConstructionRule = defineRule({
 			manualConstruction:
 				"Use the existing Schema tagged `.make` or tagged class/error constructor instead of writing a literal `_tag` object.",
 			manualDeclaration:
-				"Declare tagged values with Schema.TaggedStruct, Schema.TaggedClass, Schema.TaggedError, or Schema.TaggedUnion instead of writing a literal `_tag` property.",
+				"Declare tagged classes with Schema.TaggedClass, Schema.TaggedError, Data.TaggedClass, or Data.TaggedError instead of writing a literal `_tag` property.",
 		},
 	},
 	createOnce(context) {
@@ -38,11 +37,6 @@ export const noManualTaggedConstructionRule = defineRule({
 				}
 			},
 			PropertyDefinition(node) {
-				if (isTagProperty(node)) {
-					context.report({ node, messageId: "manualDeclaration" });
-				}
-			},
-			TSPropertySignature(node) {
 				if (isTagProperty(node)) {
 					context.report({ node, messageId: "manualDeclaration" });
 				}
