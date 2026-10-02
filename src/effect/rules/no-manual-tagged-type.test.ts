@@ -14,11 +14,11 @@ new RuleTester().run("no-manual-tagged-type", noManualTaggedTypeRule, {
 		},
 		{
 			filename: "value.ts",
-			code: "const tagOf = <A extends { readonly _tag: string }>(value: A) => value;",
+			code: "type Value = { readonly tag: string };",
 		},
 		{
 			filename: "value.ts",
-			code: "type Value = { readonly tag: string };",
+			code: 'type ValueTag = Value["_tag"];',
 		},
 	],
 	invalid: [
@@ -40,6 +40,16 @@ new RuleTester().run("no-manual-tagged-type", noManualTaggedTypeRule, {
 		{
 			filename: "value.ts",
 			code: "interface Authored { readonly _tag: string; readonly actor: string }",
+			errors: [{ messageId: "manualTaggedType" }],
+		},
+		{
+			filename: "value.ts",
+			code: "const tagOf = <A extends { readonly _tag: string }>(value: A) => value;",
+			errors: [{ messageId: "manualTaggedType" }],
+		},
+		{
+			filename: "value.ts",
+			code: "const handle = (event: { readonly _tag: string }) => event;",
 			errors: [{ messageId: "manualTaggedType" }],
 		},
 	],

@@ -145,7 +145,7 @@ This repository lints itself the same way in `oxlint.config.ts`.
 - `no-manual-effect-error-tag` — rejects manual `_tag` comparisons and switches inside broad `Effect.catch`, `Effect.catchAll`, and `Effect.catchIf` handlers in favor of tagged error handlers.
 - `no-manual-tag-comparison` — rejects direct `_tag` comparisons and `_tag` switches in favor of `Match`, `Predicate.isTagged`, or tagged-enum matching.
 - `no-manual-tagged-construction` — rejects literal `_tag` object construction in favor of Schema, tagged class/error, or `Data.taggedEnum` constructors. `Match.when` and `Match.not` patterns remain allowed.
-- `no-manual-tagged-type` — rejects `_tag` properties written by hand in `type` and `interface` declarations. Define the value with a Schema or Data tagged constructor and infer the type from it, e.g. `export type X = typeof X.Type`. Generic constraints such as `<A extends { readonly _tag: string }>` remain allowed.
+- `no-manual-tagged-type` — rejects `_tag` properties written by hand in `type` and `interface` declarations. Define the value with a Schema or Data tagged constructor and infer the type from it, e.g. `export type X = typeof X.Type`. Also rejects `_tag` in inline type literals, including generic constraints such as `<A extends { readonly _tag: string }>`.
 - `no-service-constructor-imports` — rejects relative project imports of exported `make<CapabilityName>` constructors outside `*.test.*` and `*.spec.*` files. Runtime callers should import the owning Layer and yield the contextual service instead. Package imports and static constructors such as `WorkspaceName.make` are outside the rule.
 - `prefer-effect-match` — rejects chained literal ternaries over the same value in favor of Effect's `Match` API.
 

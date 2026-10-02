@@ -4,23 +4,6 @@ const isTagKey = (key: ESTree.Node): boolean =>
 	(key.type === "Identifier" && key.name === "_tag") ||
 	(key.type === "Literal" && key.value === "_tag");
 
-const declarationOf = (
-	node: ESTree.Node,
-): ESTree.TSTypeAliasDeclaration | ESTree.TSInterfaceDeclaration | undefined => {
-	let current: ESTree.Node | null | undefined = node.parent;
-	while (current !== null && current !== undefined) {
-		if (
-			current.type === "TSTypeAliasDeclaration" ||
-			current.type === "TSInterfaceDeclaration"
-		) {
-			return current;
-		}
-		if (!current.type.startsWith("TS")) return undefined;
-		current = current.parent;
-	}
-	return undefined;
-};
-
 export const noManualTaggedTypeRule = defineRule({
 	meta: {
 		type: "problem",
@@ -36,7 +19,7 @@ export const noManualTaggedTypeRule = defineRule({
 	createOnce(context) {
 		return {
 			TSPropertySignature(node) {
-				if (isTagKey(node.key) && declarationOf(node) !== undefined) {
+				if (isTagKey(node.key)) {
 					context.report({ node, messageId: "manualTaggedType" });
 				}
 			},
