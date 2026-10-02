@@ -96,6 +96,27 @@ export default defineConfig({
 });
 ```
 
+### Effect language service
+
+Effect repositories should also run every `@effect/tsgo` diagnostic as an Oxlint error. Install `@effect/tsgo` and `oxlint-tsgolint` at versions that support your `oxlint` and `typescript`, add `"prepare": "effect-tsgo patch --oxlint"`, and add `{ "name": "@effect/language-service", "diagnostics": false }` to `compilerOptions.plugins`. Then extend every preset and promote each rule:
+
+```ts
+import { presets } from "@effect/tsgo/oxlint-presets";
+
+const effectTsgoRules = Object.values(presets).flatMap((preset) =>
+  Object.keys(preset.rules ?? {}),
+);
+
+export default defineConfig({
+  extends: Object.values(presets),
+  rules: {
+    ...Object.fromEntries(effectTsgoRules.map((rule) => [rule, "error"])),
+  },
+});
+```
+
+This repository lints itself the same way in `oxlint.config.ts`.
+
 ## Rules
 
 ### Generic rules
