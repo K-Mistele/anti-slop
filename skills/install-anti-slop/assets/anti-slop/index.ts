@@ -2,7 +2,6 @@ import { eslintCompatPlugin } from "@oxlint/plugins";
 
 import { maxTernaryDepthRule } from "./rules/max-ternary-depth.ts";
 import { noChainedTypeAssertionsRule } from "./rules/no-chained-type-assertions.ts";
-import { noCommentsRule } from "./rules/no-comments.ts";
 import { noConditionalSpreadRule } from "./rules/no-conditional-spread.ts";
 import { noKnownValueWideningRule } from "./rules/no-known-value-widening.ts";
 import { noModuleMockingRule } from "./rules/no-module-mocking.ts";
@@ -25,7 +24,6 @@ const antiSlopPlugin = eslintCompatPlugin({
 	rules: {
 		"max-ternary-depth": maxTernaryDepthRule,
 		"no-chained-type-assertions": noChainedTypeAssertionsRule,
-		"no-comments": noCommentsRule,
 		"no-conditional-spread": noConditionalSpreadRule,
 		"no-known-value-widening": noKnownValueWideningRule,
 		"no-module-mocking": noModuleMockingRule,

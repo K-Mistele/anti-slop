@@ -62,7 +62,6 @@ Install the bundled Oxlint plugin into the current repository and integrate it w
    {
      "anti-slop/max-ternary-depth": ["error", { "maxDepth": 2 }],
      "anti-slop/no-chained-type-assertions": "error",
-     "anti-slop/no-comments": "error",
      "anti-slop/no-conditional-spread": "error",
      "anti-slop/no-known-value-widening": "error",
      "anti-slop/no-module-mocking": "error",

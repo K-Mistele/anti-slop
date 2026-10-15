@@ -50,7 +50,6 @@ export default defineConfig({
   rules: {
     "anti-slop/max-ternary-depth": ["error", { "maxDepth": 2 }],
     "anti-slop/no-chained-type-assertions": "error",
-    "anti-slop/no-comments": "error",
     "anti-slop/no-conditional-spread": "error",
     "anti-slop/no-known-value-widening": "error",
     "anti-slop/no-module-mocking": "error",
@@ -124,7 +123,6 @@ This repository lints itself the same way in `oxlint.config.ts`.
 
 - `max-ternary-depth` — limits ternary expression chains to two levels by default; configure `maxDepth` to change the limit.
 - `no-chained-type-assertions` — rejects nested type assertions that fabricate evidence.
-- `no-comments` — rejects implementation comments so code must communicate intent directly. `SAFETY:` comments required by assertion policy remain allowed.
 - `no-conditional-spread` — rejects ternary and logical expressions in object, array, call, and JSX spreads.
 - `no-known-value-widening` — rejects explicit broad target types that discard known value evidence.
 - `no-module-mocking` — rejects Vitest and Jest module mocks in favor of real dependency seams.
@@ -164,13 +162,6 @@ const value = first ? one : second ? two : third ? three : fallback;
 
 ```ts
 const user = input as object as User;
-```
-
-### `no-comments`
-
-```ts
-// Convert the input before saving it.
-const saved = save(convert(input));
 ```
 
 ### `no-conditional-spread`
