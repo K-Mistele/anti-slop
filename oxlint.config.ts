@@ -7,8 +7,16 @@ const effectTsgoRules = Object.values(presets).flatMap((preset) =>
 
 export default defineConfig({
 	extends: Object.values(presets),
+	ignorePatterns: ["src/vendor/**"],
 	rules: {
 		...Object.fromEntries(effectTsgoRules.map((rule) => [rule, "error"])),
 		"effecttsgo/missing-pipeable-signature": "off",
+		"oxc/no-accumulating-spread": "error",
 	},
+	overrides: [
+		{
+			files: ["src/rules/require-readable-spacing-cli.test.ts"],
+			rules: { "effecttsgo/node-builtin-import": "off" },
+		},
+	],
 });

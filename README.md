@@ -4,7 +4,9 @@
 
 Opinionated Oxlint rules that reject low-evidence and low-signal TypeScript and JavaScript patterns.
 
-This project is meant to be vendored, not treated as a fixed npm dependency. Copy the rules into your repository, read them, and change them to match your team's standards. The bundled agent skill handles the initial copy and configuration; after that, the vendored files are yours to maintain and make your own.
+Anti-slop is first and foremost the ruleset I use with my work, projects, and team. It reflects my preferences and taste rather than attempting to be a universal coding standard.
+
+**This project is meant to be vendored**, not treated as a fixed npm dependency. There is no official npm package. Copy the rules into your repository, read them, and change them to match your team's standards. The bundled agent skill handles the initial copy and configuration; after that, the vendored files are yours to maintain and make your own. Community-maintained forks and packages are welcome, but their compatibility and release lifecycle belong to their maintainers.
 
 ## Install with an agent skill
 
@@ -12,7 +14,13 @@ This project is meant to be vendored, not treated as a fixed npm dependency. Cop
 npx skills add dmmulroy/anti-slop --skill install-anti-slop
 ```
 
-Then ask your coding agent to install or configure anti-slop in the current repository. The skill copies the plugin, installs current Oxlint dependencies, merges the plugin into the existing lint configuration, enables every generic rule, and validates the result. In repositories that depend on Effect, it also enables the opt-in Effect rule group.
+Then ask your coding agent to install or configure anti-slop in the current repository. The skill copies the plugin, installs compatible Oxlint dependencies—matching an existing Oxlint version when present—merges the plugin into the existing lint configuration, enables every generic rule, and validates the result. In repositories that depend directly on Effect, it also enables the opt-in Effect rule group.
+
+### Update an existing installation
+
+Ask your agent to **update anti-slop while preserving local customizations**, optionally naming an upstream revision or selected fixes. The same skill stages incoming source separately, uses a three-way merge when the original upstream snapshot is recoverable, and otherwise ports reviewed changes conservatively. It preserves local rules and configuration, asks about conflicting policy and enabling new rules, and records provenance for future updates. It does not force-replace the vendored directory.
+
+For latest upstream, ask the agent to retrieve and identify that revision; an already-installed skill bundle may be older. The copy script itself does not fetch or merge updates.
 
 To inspect available skills first:
 
@@ -22,7 +30,7 @@ npx skills add dmmulroy/anti-slop --list
 
 ## Manual local installation
 
-Copy `src/` into the target repository, for example at `tools/oxlint/anti-slop/`, and install matching current versions of `oxlint` and `@oxlint/plugins`.
+Copy `src/` into the target repository, for example at `tools/oxlint/anti-slop/`. If the repository already uses `oxlint`, install `@oxlint/plugins` at exactly the resolved Oxlint version. Otherwise, install the same current version of both packages. Keep both versions exact so upgrades move them together.
 
 Register the copied entry point in `oxlint.config.ts`:
 
@@ -49,6 +57,9 @@ export default defineConfig({
   ],
   rules: {
     "anti-slop/max-ternary-depth": ["error", { "maxDepth": 2 }],
+    "oxc/no-accumulating-spread": "error",
+    "anti-slop/no-array-filter-map": "error",
+    "anti-slop/no-reduce-accumulator-copy": "error",
     "anti-slop/no-chained-type-assertions": "error",
     "anti-slop/no-conditional-spread": "error",
     "anti-slop/no-known-value-widening": "error",
@@ -64,6 +75,7 @@ export default defineConfig({
     "anti-slop/no-unknown-type-aliases": "error",
     "anti-slop/no-unsafe-dictionary-type": "error",
     "anti-slop/no-widen-then-assert": "error",
+    "anti-slop/require-readable-spacing": "error",
     "anti-slop/require-safety-comment-for-type-assertion": "error"
   }
 });
@@ -90,7 +102,8 @@ export default defineConfig({
     "anti-slop-effect/no-manual-tagged-construction": "error",
     "anti-slop-effect/no-manual-tagged-type": "error",
     "anti-slop-effect/no-service-constructor-imports": "error",
-    "anti-slop-effect/prefer-effect-match": "error"
+    "anti-slop-effect/prefer-effect-match": "error",
+    "anti-slop-effect/prefer-tagged-error-handling": "error"
   }
 });
 ```
@@ -122,31 +135,39 @@ This repository lints itself the same way in `oxlint.config.ts`.
 ### Generic rules
 
 - `max-ternary-depth` — limits ternary expression chains to two levels by default; configure `maxDepth` to change the limit.
-- `no-chained-type-assertions` — rejects nested type assertions that fabricate evidence.
+- `no-array-filter-map` — rejects adjacent eager array filter/map passes while allowing lazy iterator pipelines.
+- `no-reduce-accumulator-copy` — rejects non-spread accumulator copies inside reducers; complements native `oxc/no-accumulating-spread`.
+- `no-chained-type-assertions` — rejects nested `as` and angle-bracket assertions that fabricate evidence; chains made only of `as const` remain valid.
 - `no-conditional-spread` — rejects ternary and logical expressions in object, array, call, and JSX spreads.
-- `no-known-value-widening` — rejects explicit broad target types that discard known value evidence.
-- `no-module-mocking` — rejects Vitest and Jest module mocks in favor of real dependency seams.
-- `no-object-parameters` — rejects the broad `object` type on function inputs.
-- `no-reflect-apply` — rejects `Reflect.apply` in favor of typed function calls.
-- `no-reflect-get` — rejects `Reflect.get` in favor of typed property access or boundary parsing.
+- `no-known-value-widening` — rejects known expressions flowing into explicit `unknown`, `object`, anonymous-object, or open-dictionary targets, including known arguments passed to local `unknown` type predicates. Empty dictionary accumulators and finite-key `Record` targets remain valid.
+- `no-module-mocking` — rejects Vitest and Jest `mock`, `doMock`, and `unstable_mockModule` calls in favor of real dependency seams.
+- `no-object-parameters` — rejects `object`, unions containing it, and scoped or transparent generic aliases that resolve to it on function inputs.
+- `no-reflect-apply` — rejects global `Reflect.apply` in favor of typed function calls.
+- `no-reflect-get` — rejects global `Reflect.get` in favor of typed property access or boundary parsing.
 - `no-reprovide-ambient-service` — rejects yielding an Effect service only to provide that same value back into a nested operation.
-- `no-runtime-typeof` — requires boundary parsing instead of ad hoc `typeof` narrowing.
-- `no-shape-in-symbol-names` — rejects `shape` in symbol names.
-- `no-unknown-parameters` — rejects `unknown` inputs except the explicit `cause` convention.
-- `no-unknown-returns` — rejects function contracts that return `unknown` or `Promise<unknown>`.
-- `no-unknown-type-aliases` — rejects aliases that merely conceal `unknown`.
-- `no-unsafe-dictionary-type` — rejects dictionary value contracts based on `unknown`, `any`, `object`, `{}`, and semantic equivalents.
-- `no-widen-then-assert` — rejects local flows that widen known values and later assert them back.
-- `require-safety-comment-for-type-assertion` — requires each non-const assertion to document its checked invariant.
+- `no-runtime-typeof` — requires boundary parsing instead of ad hoc `typeof` narrowing. Existence probes against the string `"undefined"` are allowed, and type predicates can be enabled explicitly.
+- `no-shape-in-symbol-names` — rejects the case-insensitive substring `shape` in locally owned symbol names while allowing static member names such as Zod's `schema.shape` that cannot be renamed locally.
+- `no-unknown-parameters` — rejects `unknown` and unions containing it on function inputs except the explicit `cause` convention and the exact subject of a type predicate.
+- `no-unknown-returns` — rejects explicit function contracts that resolve to `unknown`, `Promise<unknown>`, or `PromiseLike<unknown>`, including scoped and transparent generic aliases.
+- `no-unknown-type-aliases` — rejects scoped and transparent generic aliases whose resolved type is `unknown`.
+- `no-unsafe-dictionary-type` — rejects dictionary value contracts based on `unknown`, `any`, `object`, `{}`, and semantic equivalents. Generic constraints such as `T extends Record<string, unknown>` are allowed.
+- `no-widen-then-assert` — rejects immutable local flows that widen known evidence to `unknown`, `any`, `object`, or a broad record and later assert it back to a narrower type.
+- `require-readable-spacing` — autofixes missing blank lines between top-level declarations, around multiline bindings, before control flow/returns, and after blocks; preserves compact local bindings, imports, and overload groups.
+- `require-safety-comment-for-type-assertion` — requires each non-const assertion to have a nearby, non-empty invariant justification. Marker prefixes are configurable and default to `SAFETY`.
 
 ### Effect rules
 
 - `no-manual-effect-error-tag` — rejects manual `_tag` comparisons and switches inside broad `Effect.catch`, `Effect.catchAll`, and `Effect.catchIf` handlers in favor of tagged error handlers.
 - `no-manual-tag-comparison` — rejects direct `_tag` comparisons and `_tag` switches in favor of `Match`, `Predicate.isTagged`, or tagged-enum matching.
-- `no-manual-tagged-construction` — rejects literal `_tag` object construction in favor of Schema, tagged class/error, or `Data.taggedEnum` constructors. `Match.when` and `Match.not` patterns remain allowed.
+- `no-manual-tagged-construction` — rejects literal `_tag` object construction in favor of Schema, tagged class/error, or `Data.taggedEnum` constructors, including `_tag` object patterns passed to `Match.when` and `Match.not`, and literal `_tag` class fields.
 - `no-manual-tagged-type` — rejects `_tag` properties written by hand in `type` and `interface` declarations. Define the value with a Schema or Data tagged constructor and infer the type from it, e.g. `export type X = typeof X.Type`. Also rejects `_tag` in inline type literals, including generic constraints such as `<A extends { readonly _tag: string }>`.
-- `no-service-constructor-imports` — rejects relative project imports of exported `make<CapabilityName>` constructors outside `*.test.*` and `*.spec.*` files. Runtime callers should import the owning Layer and yield the contextual service instead. Package imports and static constructors such as `WorkspaceName.make` are outside the rule.
+- `no-service-constructor-imports` — rejects named `make<CapabilityName>` imports from relative project modules outside `*.test.*` and `*.spec.*` files. Runtime callers should import the owning Layer and yield the contextual service instead. Package and path-alias imports, default imports, and static constructors such as `WorkspaceName.make` are outside the rule.
 - `prefer-effect-match` — rejects chained literal ternaries over the same value in favor of Effect's `Match` API.
+- `prefer-tagged-error-handling` — rejects `Predicate.isTagged` checks on the error inside broad `Effect.catch`, `Effect.catchAll`, and `Effect.catchIf` handlers in favor of `Effect.catchTag`/`Effect.catchTags`, or `Effect.catchReason`/`Effect.catchReasons` when the check is on `error.reason`. Direct `_tag` comparisons stay with `no-manual-effect-error-tag`.
+
+### Analysis boundaries
+
+The rules use Oxlint's ESTree and lexical-scope APIs rather than a TypeScript type checker. They resolve same-file aliases—including block-scoped aliases, forward references, and transparent generic aliases—but do not infer imported type definitions or cross-file call signatures. Rules that inspect calls therefore document when enforcement is intentionally local.
 
 ## Violation examples
 
@@ -157,6 +178,54 @@ Each snippet below is rejected by the named rule.
 ```ts
 const value = first ? one : second ? two : third ? three : fallback;
 ```
+
+### `no-array-filter-map`
+
+```ts
+const users: User[] = loadUsers();
+const emails = users.filter(user => user.active).map(user => user.email);
+const found = users.map(lookup).filter(value => value !== undefined);
+```
+
+Prefer lazy iterator helpers where the target runtime supports them:
+
+```ts
+const emails = users.values()
+  .filter(user => user.active)
+  .map(user => user.email)
+  .toArray();
+```
+
+A single `flatMap(user => user.active ? [user.email] : [])` or a reducer that pushes into a fresh local array is also allowed. Iterator helpers avoid intermediate arrays and per-item wrapper arrays, but are not guaranteed to be faster. Check runtime support; TypeScript library declarations do not polyfill them.
+
+This AST/scope rule recognizes array literals, direct array/tuple annotations, immutable local aliases, and supported array-preserving method chains. Unknown receivers (including imported factory results and unannotated parameters), type aliases, and property-based array types are not inferred. Iterator pipelines are not flagged. Both `filter().map()` and `map().filter()` are covered, regardless of predicate. There is no autofix: callback ordering, indexes, `thisArg`, sparse arrays, and truthiness filtering must be reviewed before changing APIs.
+
+### `no-reduce-accumulator-copy`
+
+```ts
+items.reduce((acc, item) => Object.assign({}, acc, { [item.id]: item }), {});
+items.reduce((acc, item) => acc.concat([item]), []);
+items.reduce((acc, item) => {
+  const next = acc.slice();
+  next.push(item);
+  return next;
+}, []);
+```
+
+Instead, mutate a fresh, locally owned accumulator and return it:
+
+```ts
+items.reduce((acc, item) => {
+  acc.push(item);
+  return acc;
+}, []);
+```
+
+`Object.assign(acc, item)` is also allowed. Copying individual input items is not copying accumulated state.
+
+The rule covers inline `reduce`/`reduceRight` callbacks, including index parameters, and immutable local accumulator aliases. It detects global `Object.assign` with an object-literal target and the accumulator as a source, global `Array.from(acc)`, and array accumulator calls to `concat`, `slice`, `toSpliced`, `toSorted`, `toReversed`, and `with`. Array copy methods require local array evidence for the initial value so string concatenation and unknown custom collections are not flagged. Like the native rule, reducer method names are syntactic evidence, not proof of the receiver's runtime type. Named callbacks, nested functions, indirect copy helpers, nested accumulator properties, and reassigned aliases are outside its scope. Copying a bounded accumulator is not necessarily quadratic, but these patterns are rejected because growing accumulators can be.
+
+Enable native `oxc/no-accumulating-spread` alongside it for array/object spreads in reducers and supported loops. Neither rule proves that every possible quadratic reduction is absent. No automatic mutation rewrite is provided because accumulator ownership cannot be established syntactically.
 
 ### `no-chained-type-assertions`
 
@@ -181,6 +250,19 @@ const handlers: Record<string, Handler> = {
 ```
 
 This discards the known `start` key. Preserve inference or use `satisfies Record<string, Handler>` instead.
+
+Known values must not be widened back to `unknown` through a local type predicate:
+
+```ts
+function isUser(value: unknown): value is User {
+  return UserSchema.safeParse(value).success;
+}
+
+declare const user: User;
+isUser(user);
+```
+
+Call the predicate at the unparsed boundary, while the argument is still `unknown`.
 
 ### `no-module-mocking`
 
@@ -226,7 +308,7 @@ assertion functions while continuing to reject ad hoc checks elsewhere:
 }
 ```
 
-The option defaults to `false`.
+The option defaults to `false`. Existence probes such as `typeof document === "undefined"` are always allowed because they establish whether a binding exists rather than narrow its representation.
 
 ### `no-shape-in-symbol-names`
 
@@ -235,6 +317,8 @@ interface UserShape {
   id: string;
 }
 ```
+
+Static member reads such as `schema.shape` are allowed because the member name belongs to the value's owner and cannot be renamed locally.
 
 ### Effect: `no-service-constructor-imports`
 
@@ -246,25 +330,82 @@ Import the owning Layer and yield `IssueService` instead. Focused `*.test.*` and
 
 ### Effect: tagged values and matching
 
+Direct tag checks are rejected by `no-manual-tag-comparison`:
+
 ```ts
 if (result._tag === "Ready") useReady(result);
+```
 
+Use `Predicate.isTagged` for a predicate or `Match` for branching:
+
+```ts
+if (Predicate.isTagged("Ready")(result)) useReady(result);
+```
+
+Literal tag objects are rejected by `no-manual-tagged-construction`:
+
+```ts
 const result = { _tag: "Ready", value };
+```
 
-Effect.catch((error) =>
-  error._tag === "NotFound" ? recover : Effect.fail(error)
+Use the existing Schema, tagged class/error, or `Data.taggedEnum` constructor instead, such as `Ready.make({ value })`. Object patterns with `_tag` passed to `Match.when` and `Match.not` are rejected too; use `Match.tag`/`Match.tags`.
+
+Manual tag branching in broad catch handlers is rejected by `no-manual-effect-error-tag`:
+
+```ts
+program.pipe(
+  Effect.catch((error) =>
+    error._tag === "NotFound" ? recover : Effect.fail(error)
+  )
 );
+```
 
+Use the selective error operator:
+
+```ts
+program.pipe(Effect.catchTag("NotFound", () => recover));
+```
+
+For a tagged `error.reason`, use `Effect.catchReason` or `Effect.catchReasons`.
+
+`Predicate.isTagged` checks on the error in broad catch handlers are rejected by `prefer-tagged-error-handling`:
+
+```ts
+program.pipe(
+  Effect.catch((error) =>
+    Predicate.isTagged(error, "NotFound") ? recover : Effect.fail(error)
+  )
+);
+```
+
+Use `Effect.catchTag("NotFound", () => recover)` here as well.
+
+Repeated literal ternaries over the same value are rejected by `prefer-effect-match`:
+
+```ts
 const label = kind === "a" ? "A" : kind === "b" ? "B" : "Other";
 ```
 
-Use `Predicate.isTagged` for reusable predicates, `Match` or tagged-enum matching for branching, tagged constructors for values, and `Effect.catchTag`/`Effect.catchTags` for tagged errors.
+Use `Match`:
+
+```ts
+const label = Match.value(kind).pipe(
+  Match.when("a", () => "A"),
+  Match.when("b", () => "B"),
+  Match.orElse(() => "Other")
+);
+```
+
+These rules are syntactic. They recognize direct `Effect.catch*` and `Match.when`/`Match.not` calls under those exact identifiers and do not resolve import aliases or verify that similarly named objects came from Effect. `prefer-effect-match` compares the source text of the repeatedly tested expression; it does not infer its type or prove exhaustiveness.
 
 ### `no-unknown-parameters`
 
 ```ts
 function handle(input: unknown) {}
 ```
+
+A type predicate may accept `unknown` for the parameter it narrows; other `unknown`
+parameters on the same function remain rejected.
 
 ### `no-unknown-returns`
 
@@ -295,6 +436,20 @@ const stored: unknown = loaded;
 const user = stored as User;
 ```
 
+### `require-readable-spacing`
+
+```ts
+export const first = 1;
+/** Documentation stays attached to second. */
+export const second = 2;
+```
+
+Autofix inserts a blank line before the documentation. Inside functions, adjacent short variable declarations stay grouped, while multiline bindings and control-flow boundaries receive spacing. Adjacent function overload signatures and their implementation remain grouped. Existing blank lines are never removed. The rule takes no options; edit the vendored policy if your team's preferences differ.
+
+Run `oxlint --fix` (or `vp lint --fix`), then your formatter, then lint again. The rule inserts whitespace only; it does not add braces, wrap expressions, sort imports, or infer every logical group. Keep indentation and wrapping with the formatter rather than enabling a competing stylistic preset.
+
+The comment-aware engine is [vendored from ESLint Stylistic](src/vendor/eslint-stylistic/UPSTREAM.md) under MIT. Copy its `LICENSE` and provenance along with the code; no third-party plugin dependency is needed.
+
 ### `require-safety-comment-for-type-assertion`
 
 ```ts
@@ -308,6 +463,17 @@ Add a specific justification immediately before a necessary assertion:
 const userId = value as UserId;
 ```
 
+`SAFETY` remains the default marker. Comments immediately above exported declarations are recognized. Repositories with an established convention can configure one or more alternatives; every marker must still be followed by a colon and a non-empty justification:
+
+```json
+{
+  "anti-slop/require-safety-comment-for-type-assertion": [
+    "error",
+    { "markers": ["INVARIANT", "SAFETY"] }
+  ]
+}
+```
+
 ## Development
 
 ```bash
@@ -315,7 +481,7 @@ pnpm install
 pnpm check
 ```
 
-`src/` is canonical. After changing production source, run `pnpm sync:skill-assets`; CI checks that the skill's bundled copy remains identical.
+`src/` is canonical. After changing production source, run `pnpm sync:skill-assets`; CI checks that the skill's bundled copy remains identical. `pnpm check` runs Oxlint, every RuleTester suite, TypeScript typechecking, and the skill-asset drift check.
 
 ## License
 
