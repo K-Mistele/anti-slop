@@ -76,6 +76,7 @@ Complete when the operation and target path are established and pre-existing wor
    {
      "anti-slop/max-ternary-depth": ["error", { "maxDepth": 2 }],
      "oxc/no-accumulating-spread": "error",
+     "complexity": ["warn", { "max": 15 }],
      "typescript/no-non-null-assertion": "error",
      "anti-slop/no-array-filter-map": "error",
      "anti-slop/no-reduce-accumulator-copy": "error",
@@ -123,6 +124,8 @@ Complete when the operation and target path are established and pre-existing wor
    For `no-array-filter-map`, prefer lazy `.values().filter(...).map(...).toArray()` pipelines only when the target runtime supports iterator helpers; otherwise use an appropriate single `flatMap` or locally mutating reducer. Review callback order, indexes, sparse arrays, `thisArg`, and filtering semantics rather than mechanically rewriting chains. Unknown receiver types are deliberately not inferred by this AST/scope rule.
 
    Pair `no-reduce-accumulator-copy` with native `oxc/no-accumulating-spread`: the custom rule catches supported non-spread copies such as `Object.assign({}, acc, item)`, `Array.from(acc)`, and array accumulator `concat`/`slice` calls. Mutating a fresh local accumulator is allowed; copying individual input items is also allowed. Named callbacks, indirect helpers, and nested accumulator properties are not fully analyzed, so do not claim all quadratic reducers are ruled out.
+
+   Enable Oxlint's built-in `complexity` rule (`eslint/complexity`, cyclomatic complexity) at `"warn"` with `max` 15, everywhere including tests. It is a built-in rule, so it cannot take `mode: "changed"`; report its warning count instead of fixing them.
 
    Pair the type-assertion rules with native `typescript/no-non-null-assertion`: `value!` asserts that a value is present with no check and no stated invariant, and `require-safety-comment-for-type-assertion` and `no-chained-type-assertions` only see `as` and `<T>` assertions. When cleanup is authorized, replace each one with a check that narrows (an early return, a thrown invariant error, or an `Option`/`undefined` branch), never with an `as` cast or a disable comment. The rule is in Oxlint's `typescript` plugin, which is on by default; a config that sets `plugins` must list `"typescript"`.
 

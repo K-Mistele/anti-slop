@@ -94,6 +94,8 @@ export default defineConfig({
   ],
   rules: {
     "oxc/no-accumulating-spread": "error",
+    // Built-in rule, so it cannot take mode "changed".
+    complexity: ["warn", { max: 15 }],
     // `value!` is an assertion the type-assertion rules don't see; narrow with a check instead.
     "typescript/no-non-null-assertion": "error",
     "anti-slop/max-ternary-depth": ["error", { maxDepth: 2 }],

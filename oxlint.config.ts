@@ -24,6 +24,7 @@ export default defineConfig({
 		"effecttsgo/prefer-effect-record": "off",
 		"effecttsgo/prefer-effect-string": "off",
 		"oxc/no-accumulating-spread": "error",
+		complexity: ["warn", { max: 15 }],
 		"typescript/no-non-null-assertion": "error",
 		"anti-slop/no-instanceof": "error",
 		"landmines/strict-msw": "error",
