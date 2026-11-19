@@ -132,7 +132,7 @@ export const repeatedSwitchesRule = defineRule({
 				}
 				if (chainLength >= 2) {
 					flush();
-					record(first.value, statement, cases);
+					record(first.value, statement.test, cases);
 					continue;
 				}
 				if (statement.alternate !== null && statement.alternate !== undefined) {
@@ -141,7 +141,7 @@ export const repeatedSwitchesRule = defineRule({
 				}
 				if (run?.value !== first.value) {
 					flush();
-					run = { value: first.value, start: statement, cases: [] };
+					run = { value: first.value, start: statement.test, cases: [] };
 				}
 				run?.cases.push(...cases);
 				runLength += 1;
@@ -161,7 +161,7 @@ export const repeatedSwitchesRule = defineRule({
 				const cases = node.cases.flatMap((switchCase) =>
 					switchCase.test === null || switchCase.test === undefined ? [] : [text(switchCase.test)],
 				);
-				record(text(discriminant), node, cases);
+				record(text(discriminant), node.discriminant, cases);
 			},
 			ConditionalExpression(node) {
 				let parent = node.parent;
@@ -179,7 +179,7 @@ export const repeatedSwitchesRule = defineRule({
 					chainLength += 1;
 					alternate = unwrap(alternate.alternate);
 				}
-				if (chainLength >= 2) record(first.value, node, cases);
+				if (chainLength >= 2) record(first.value, node.test, cases);
 			},
 			Program(node) {
 				recordIfRuns(node.body);

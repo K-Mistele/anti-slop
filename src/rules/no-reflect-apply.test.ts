@@ -13,7 +13,7 @@ tester.run("anti-slop/no-reflect-apply", noReflectApplyRule, {
     "function invoke(Reflect: { apply(): number }) { return Reflect.apply(); }",
   ],
   invalid: [
-    { code: "const value = Reflect.apply(operation, owner, args);", errors: [error] },
+    { code: "const value = Reflect.apply(operation, owner, args);", errors: [{ ...error, line: 1, column: 14, endLine: 1, endColumn: 27 }] },
     { code: "const value = Reflect['apply'](operation, owner, args);", errors: [error] },
   ],
 });

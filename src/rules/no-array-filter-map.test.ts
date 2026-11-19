@@ -24,7 +24,7 @@ tester.run("anti-slop/no-array-filter-map", noArrayFilterMapRule, {
     "const first = second; const second = first; first.filter(active).map(email);",
   ],
   invalid: [
-    { code: "[].filter(active).map(email);", errors: [error] },
+    { code: "[].filter(active).map(email);", errors: [{ ...error, line: 1, column: 18, endLine: 1, endColumn: 21 }] },
     { code: "[].map(user => user.active ? user.email : undefined).filter(email => email !== undefined);", errors: [error] },
     { code: "const users = []; users.map(email).filter(Boolean);", errors: [error] },
     { code: "const users = []; const alias = users; alias.filter(active).map(email);", errors: [error] },
@@ -36,6 +36,6 @@ tester.run("anti-slop/no-array-filter-map", noArrayFilterMapRule, {
     { code: "const users = []; (users.filter(active)!).map(email);", errors: [error] },
     { code: "const users = []; users?.filter(active)?.map(email);", errors: [error] },
     { code: "const users = []; users.slice().filter(active).map(email);", errors: [error] },
-    { code: "const users = []; users.filter(active).map(email).filter(Boolean);", errors: [error, error] },
+    { code: "const users = []; users.filter(active).map(email).filter(Boolean);", errors: [{ ...error, column: 39, endColumn: 42 }, { ...error, column: 50, endColumn: 56 }] },
   ],
 });

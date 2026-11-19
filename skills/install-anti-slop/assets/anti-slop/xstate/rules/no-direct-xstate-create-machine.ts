@@ -18,7 +18,7 @@ export const noDirectXStateCreateMachineRule = defineRule({
 		const imports = collectXStateImports(context.sourceCode.ast, "xstate");
 		return {
 			CallExpression(node) {
-				if (importedCallee(node.callee, imports) === "createMachine") context.report({ node, messageId: "directCreateMachine" });
+				if (importedCallee(node.callee, imports) === "createMachine") context.report({ node, loc: node.callee.loc, messageId: "directCreateMachine" });
 			},
 		};
 	},

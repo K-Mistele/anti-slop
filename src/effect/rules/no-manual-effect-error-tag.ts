@@ -44,6 +44,7 @@ export const noManualEffectErrorTagRule = defineRule({
 				}
 				context.report({
 					node,
+					loc: node.discriminant.loc,
 					messageId: isReasonTagMember(node.discriminant) ? "reason" : "tag",
 				});
 			},

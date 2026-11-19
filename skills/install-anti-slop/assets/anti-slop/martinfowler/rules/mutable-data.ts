@@ -4,6 +4,7 @@ import {
 	isFunctionNode,
 	isIgnoredTestFile,
 } from "../shared.ts";
+import { nameLoc } from "../../shared/report-location.ts";
 
 function enclosingFunction(node: ESTree.Node): ESTree.Node | undefined {
 	let current: ESTree.Node | null = node.parent;
@@ -56,7 +57,7 @@ export const mutableDataRule = defineRule({
 							const identifier = variable.identifiers[0];
 							if (identifier === undefined) continue;
 							context.report({
-								node: identifier,
+								loc: nameLoc(context.sourceCode, identifier),
 								messageId: "mutableData",
 								data: {
 									name: variable.name,

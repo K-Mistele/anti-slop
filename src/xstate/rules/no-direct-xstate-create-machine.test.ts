@@ -20,7 +20,7 @@ tester.run("anti-slop-xstate/no-direct-xstate-create-machine", noDirectXStateCre
 		{
 			code: `import { createMachine } from "xstate";
 			const toggle = createMachine({ initial: "off", states: { off: { on: { toggle: "on" } }, on: {} } });`,
-			errors: [{ messageId: "directCreateMachine" }],
+			errors: [{ messageId: "directCreateMachine", line: 2, column: 18, endLine: 2, endColumn: 31 }],
 		},
 		{
 			code: `import { createMachine as machine } from "xstate";

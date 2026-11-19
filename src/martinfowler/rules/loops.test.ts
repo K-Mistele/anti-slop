@@ -38,9 +38,9 @@ tester.run("anti-slop-martinfowler/loops", loopsRule, {
 	],
 	invalid: [
 		{
-			// Only the loop's first line is reported, not its body.
+			// Only the loop's keyword is reported, not its body.
 			code: "const emails = [];\nfor (const user of users) {\n  if (user.active) emails.push(user.email);\n}",
-			errors: [{ ...error("emails", "calling `.push`"), line: 2, column: 0, endLine: 2, endColumn: 27 }],
+			errors: [{ ...error("emails", "calling `.push`"), line: 2, column: 0, endLine: 2, endColumn: 3 }],
 		},
 		{
 			code: "const emails = []; for (const user of users) { if (user.active) emails.push(user.email); }",

@@ -47,7 +47,7 @@ export const noMultipleXStateHooksRule = defineRule({
 					firstHook.set(owner, hook);
 					return;
 				}
-				context.report({ node, messageId: "multipleHooks", data: { first, second: hook } });
+				context.report({ node, loc: node.callee.loc, messageId: "multipleHooks", data: { first, second: hook } });
 			},
 		};
 	},

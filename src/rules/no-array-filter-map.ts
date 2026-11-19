@@ -21,7 +21,9 @@ export const noArrayFilterMapRule = defineRule({
         const inner = arrayMethodTarget(innerCall.callee);
         if (inner === null || inner.name !== (outer.name === "map" ? "filter" : "map")) return;
         if (!isKnownArrayExpression(context.sourceCode, inner.object)) return;
-        context.report({ node, messageId: "arrayFilterMap", data: { first: inner.name, second: outer.name } });
+        const outerCallee = unwrapArrayExpression(node.callee);
+        const method = outerCallee.type === "MemberExpression" ? outerCallee.property : node.callee;
+        context.report({ node, loc: method.loc, messageId: "arrayFilterMap", data: { first: inner.name, second: outer.name } });
       },
     };
   },

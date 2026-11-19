@@ -148,6 +148,7 @@ export const requireOperationSpanRule = defineRule({
 						if (operation === null || hasSpan(operation, names, sourceCode)) continue;
 						context.report({
 							node: property,
+							loc: property.key.loc,
 							messageId: "missingSpan",
 							data: { operation: sourceCode.getText(property.key), service: service.name ?? "Service" },
 						});

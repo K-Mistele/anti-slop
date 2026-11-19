@@ -13,20 +13,23 @@ coding agent which refactoring to apply. It has two parts:
   `anti-slop-martinfowler-jev`, one rule per smell. These cost a request per file, so they run only
   on changed code.
 
-The two parts word their diagnostics differently. The AST rules print one short line pointing at the
-symbol's name (or, for an anonymous function, loop, switch, or chain, only the node's first line),
-with the measured numbers and a fix:
+Both parts print one short line. The AST rules point at the symbol's name (without its type
+annotation), or, when there is none, at a short part of the node: an anonymous function's `function`
+keyword or `=>`, a loop's keyword, the value a switch switches on, or a chain without its call's
+arguments. They give the measured numbers and a fix:
 
 ```text
 Long function `makeStreamOperations`: 82 lines (limit 80). Extract named steps.
 ```
 
-The jev rules, which a coding model reads as the only explanation of a judgement call, keep the
-longer form:
+The jev rules give the smell and the fix in a few words:
 
 ```text
-Possibly <Smell>: <why this finding matters>. Consider <Refactoring> (<Effect form>).
+[feature-envy] Feature envy: it mostly works on another module's data. Move it into that module or service. (jev-1.13.0 answered yes, 0.91 >= 0.75)
 ```
+
+Each jev rule keeps the longer explanation (why the finding matters, the refactoring, and its Effect
+form) in its `help` field, which oxlint does not print.
 
 Every rule should run at `warn`. A smell is a prompt to look, not proof of a defect.
 
@@ -159,13 +162,17 @@ export default defineConfig({
 ## Jev preset
 
 Each entry in `martinFowlerJevRules` is a `JevRule` from `oxlint-plugin-jev`, `{ id, target,
-question, cutoff, location?, message }`, with `message` required. `question` lists its carve-outs
-first and ends with the yes/no question; "yes" means "this is the smell". `message` replaces the
-plugin's default diagnostic text so the agent gets the smell and the refactoring:
+question, cutoff, location?, message }`, with `message` required, plus a `help` string. `question`
+lists its carve-outs first and ends with the yes/no question; "yes" means "this is the smell".
+`message` replaces the plugin's default diagnostic text with one line naming the smell and the fix:
 
 ```text
-[feature-envy] Possibly Feature Envy: ... Consider Move Function ... (jev-1.13.0 answered yes, 0.91 >= 0.75)
+[feature-envy] Feature envy: it mostly works on another module's data. Move it into that module or service. (jev-1.13.0 answered yes, 0.91 >= 0.75)
 ```
+
+`help` keeps the longer guidance: why the finding matters and which refactoring to apply, with its
+Effect form. Oxlint has nowhere to show it, so `src/martinfowler/jev-plugin.ts` drops it before
+passing the rules to `createJevPlugin`.
 
 It requires the jev fork (`K-Mistele/oxlint-plugin-jev`) for `createJevPlugin` and the per-rule
 `message` field; upstream `oxlint-plugin-jev` has neither. How anti-slop and consumers get the fork
@@ -248,6 +255,6 @@ request per file.
 Change a question's leading carve-out sentence when a legitimate pattern keeps firing, and keep one
 smell per entry. `src/martinfowler/jev-rules.test.ts` checks that ids are unique and kebab-case,
 targets are valid, cutoffs are in (0, 1], location cutoffs are in (0.5, 1], questions end with "?",
-and every message starts with "Possibly " and contains "Consider ". Run it with
-`tsx src/martinfowler/jev-rules.test.ts` after editing. `src/jev/plugin.test.ts` checks that every id
+every message is one line of at most 120 characters, and every `help` contains "Consider ". Run it
+with `tsx src/martinfowler/jev-rules.test.ts` after editing. `src/jev/plugin.test.ts` checks that every id
 becomes the rule `anti-slop-martinfowler-jev/<id>`.

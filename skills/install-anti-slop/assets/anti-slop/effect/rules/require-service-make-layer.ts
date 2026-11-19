@@ -161,20 +161,20 @@ export const requireServiceMakeLayerRule = defineRule({
 			const layers = members.filter((member) => isLayerMemberName(member.name));
 			if (serviceMakes(service).length === 0) {
 				if (allowTagOnly && layers.length === 0) return;
-				context.report({ node: node.id ?? node, messageId: "missingMake", data: { name } });
+				context.report({ node, loc: (node.id ?? context.sourceCode.getFirstToken(node) ?? node).loc, messageId: "missingMake", data: { name } });
 				return;
 			}
 			const layer = layers.find((member) => member.name === "layer");
 			if (layer === undefined) {
-				context.report({ node: node.id ?? node, messageId: "missingLayer", data: { name } });
+				context.report({ node, loc: (node.id ?? context.sourceCode.getFirstToken(node) ?? node).loc, messageId: "missingLayer", data: { name } });
 			} else if (layer.value === null || !isMakeLayer(layer.value, service, names)) {
-				context.report({ node: layer.node, messageId: "invalidLayer", data: { name } });
+				context.report({ node: layer.node, loc: layer.node.key.loc, messageId: "invalidLayer", data: { name } });
 			}
 			for (const member of layers) {
 				if (member === layer) continue;
 				if (member.value === null || !buildsService(member.value, service, names)) continue;
 				if (derivesFromService(member.value, service)) continue;
-				context.report({ node: member.node, messageId: "invalidVariantLayer", data: { name, member: member.name } });
+				context.report({ node: member.node, loc: member.node.key.loc, messageId: "invalidVariantLayer", data: { name, member: member.name } });
 			}
 		};
 
@@ -188,7 +188,7 @@ export const requireServiceMakeLayerRule = defineRule({
 				const [target, make] = node.arguments;
 				if (target === undefined || make === undefined || target.type === "SpreadElement" || make.type === "SpreadElement") return;
 				if (isTargetMake(sourceText, target, make) || isEffectPackage(importSource(context.sourceCode, target))) return;
-				context.report({ node, messageId: "inlineLayerEffect", data: { service: sourceText(unwrapExpression(target)) } });
+				context.report({ node, loc: node.callee.loc, messageId: "inlineLayerEffect", data: { service: sourceText(unwrapExpression(target)) } });
 			},
 		};
 	},

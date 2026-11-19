@@ -67,6 +67,13 @@ tester.run("anti-slop-effect/require-service-make-layer", requireServiceMakeLaye
 			options: [{ allowTagOnly: false }],
 			errors: [{ messageId: "missingMake", data: { name: "WorkerBindings" } }],
 		},
+		// An anonymous class is reported at its `class` keyword.
+		{
+			code: `${imports}
+			export const Anonymous = class extends Context.Service<Anonymous, {}>()("@app/Anonymous") {};`,
+			options: [{ allowTagOnly: false }],
+			errors: [{ messageId: "missingMake", data: { name: "this service" }, line: 6, column: 28, endLine: 6, endColumn: 33 }],
+		},
 		{
 			code: `${imports}
 			export class Builds extends Context.Service<Builds, { readonly latest: Effect.Effect<void> }>()("@app/Builds") {
@@ -88,7 +95,7 @@ tester.run("anti-slop-effect/require-service-make-layer", requireServiceMakeLaye
 			}) {
 				static readonly layer = (impl: StoreShape) => Layer.succeed(this, impl);
 			}`,
-			errors: [{ messageId: "invalidLayer", data: { name: "Store" } }],
+			errors: [{ messageId: "invalidLayer", data: { name: "Store" }, line: 9, column: 20, endLine: 9, endColumn: 25 }],
 		},
 		{
 			code: `${imports}
@@ -106,7 +113,7 @@ tester.run("anti-slop-effect/require-service-make-layer", requireServiceMakeLaye
 				static readonly layer = Layer.effect(this, this.make);
 				static readonly layerUnavailable = (cause: Error) => Layer.succeed(Photon, unavailable(cause));
 			}`,
-			errors: [{ messageId: "invalidVariantLayer", data: { name: "Photon", member: "layerUnavailable" } }],
+			errors: [{ messageId: "invalidVariantLayer", data: { name: "Photon", member: "layerUnavailable" }, line: 10, column: 20, endLine: 10, endColumn: 36 }],
 		},
 		{
 			code: `${imports}
@@ -121,7 +128,7 @@ tester.run("anti-slop-effect/require-service-make-layer", requireServiceMakeLaye
 			import { Context, Effect, Layer } from "effect";
 			export class Board extends Context.Service<Board, BoardShape>()("@app/Board") {}
 			export const layerBoard = Layer.effect(Board, makeBoard);`,
-			errors: [{ messageId: "inlineLayerEffect", data: { service: "Board" } }],
+			errors: [{ messageId: "inlineLayerEffect", data: { service: "Board" }, line: 4, column: 29, endLine: 4, endColumn: 41 }],
 		},
 	],
 });

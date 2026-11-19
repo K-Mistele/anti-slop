@@ -22,7 +22,7 @@ new RuleTester().run(
 			},
 			{
 				code: 'Effect.catchIf(predicate, (error) => { switch (error._tag) { case "NotFound": return recover; } });',
-				errors: [{ messageId: "tag" }],
+				errors: [{ messageId: "tag", line: 1, column: 47, endLine: 1, endColumn: 57 }],
 			},
 		],
 	},

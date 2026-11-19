@@ -10,7 +10,6 @@ import {
 	resolveVariable,
 	unwrap,
 } from "../shared.ts";
-import { firstLineLoc } from "../../shared/report-location.ts";
 
 type LoopNode =
 	| ESTree.ForStatement
@@ -236,7 +235,7 @@ export const loopsRule = defineRule({
 				}
 				if (reportedByOuterLoop) continue;
 				context.report({
-					loc: firstLineLoc(context.sourceCode, loop.loc),
+					loc: (context.sourceCode.getFirstToken(loop) ?? loop).loc,
 					messageId: "loop",
 					data: { target: site.target.name, how: site.how },
 				});

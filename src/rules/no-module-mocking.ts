@@ -72,7 +72,7 @@ export const noModuleMockingRule = defineRule({
       CallExpression(node) {
         if (node.callee.type === "Super" || node.callee.type === "V8IntrinsicExpression") return;
         if (moduleMockCall(context.sourceCode, node.callee)) {
-          context.report({ node, messageId: "moduleMock" });
+          context.report({ node, loc: node.callee.loc, messageId: "moduleMock" });
         }
       },
     };

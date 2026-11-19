@@ -35,7 +35,8 @@ tester.run("anti-slop-martinfowler/long-parameter-list", longParameterListRule, 
 		{
 			code: "items.map(function (a, b, c) {\n  return a;\n});",
 			options: [{ max: 2 }],
-			errors: [{ message: message("", 3, 2), line: 1, column: 10, endLine: 1, endColumn: 30 }],
+			// An anonymous function is reported at its `function` keyword.
+			errors: [{ message: message("", 3, 2), line: 1, column: 10, endLine: 1, endColumn: 18 }],
 		},
 	],
 });

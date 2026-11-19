@@ -4,8 +4,9 @@
  * `./jev-plugin.ts` turns each entry into its own oxlint rule, `anti-slop-martinfowler-jev/<id>`,
  * meant to run at `warn`. "Yes" means
  * "this is the smell". Each question states its carve-outs first and ends with the yes/no
- * question. `message` is the diagnostic text the coding agent reads: it names the smell, says why
- * it matters, and names the refactoring (with its Effect form) to apply.
+ * question. `message` is the one-line diagnostic oxlint prints: the smell and the fix in a few
+ * words. `help` keeps the longer guidance (why it matters, the refactoring and its Effect form);
+ * oxlint has nowhere to show it, so `./jev-plugin.ts` leaves it out of the rules it registers.
  *
  * Smells that the AST plugin in `../index.ts` detects precisely (Long Function, Long Parameter
  * List, Global Data, Mutable Data, Loops, Message Chains) have no entry here. Mysterious Name and
@@ -18,8 +19,8 @@
  */
 import type { JevRule } from "oxlint-plugin-jev";
 
-/** A jev rule whose `message` names the smell and the refactoring, so it is required here. */
-export type MartinFowlerJevRule = JevRule & { readonly message: string };
+/** A jev rule whose `message` names the smell and the fix, and whose `help` explains the refactoring. */
+export type MartinFowlerJevRule = JevRule & { readonly message: string; readonly help: string };
 
 /** The oxlint plugin name `./jev-plugin.ts` registers; each rule is configured as `<name>/<id>`. */
 export const martinFowlerJevPluginName = "anti-slop-martinfowler-jev";
@@ -38,8 +39,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 		question:
 			"Ignore inline callbacks, local helpers of about five lines or fewer, names required by an interface, framework, or library key (such as fetch, make, layer, of, handler, or a service method fixed by its interface), genuinely generic module-private primitives, test helpers, and domain verbs with a documented specific meaning. Does this function's name hide or misstate what callers can observe, because either (a) its main verb is generic (resolve, process, handle, run, execute, manage, do, perform, apply, ensure, prepare, update, sync) while a more specific verb or verb pair, such as getCachedOrAcquire or loadMutateAndSave, would describe the body, or (b) the body has a caller-visible effect that the name omits or contradicts (a network call, a persistent write or delete, spawning a process or fiber, sending a message, swallowing errors, or reading or writing a cache) while the name implies the function is pure or read-only, or names only one of several steps it performs?",
 		cutoff: 0.7,
-		message:
-			"Possibly Mysterious Name: the name does not tell callers which steps this function performs or which effects (network, writes, retries, swallowed errors, cache) it has. Consider Rename Function: name every caller-visible step, for example `resolve` → `getCachedOrAcquireCredential`, `runLogged` → `logAndSuppressFailures`, `applyDeliveryMutation` → `loadMutateAndSaveDeliverySlot`.",
+		message: "Mysterious name: it hides steps or effects (network, writes, cache). Rename it for each caller-visible step.",
+		help: "The name does not tell callers which steps this function performs or which effects (network, writes, retries, swallowed errors, cache) it has. Consider Rename Function: name every caller-visible step, for example `resolve` → `getCachedOrAcquireCredential`, `runLogged` → `logAndSuppressFailures`, `applyDeliveryMutation` → `loadMutateAndSaveDeliverySlot`.",
 	},
 	{
 		id: "feature-envy",
@@ -47,8 +48,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 		question:
 			"Ignore mapping and serialization functions at a boundary whose job is to translate between two shapes, pure functions over plain data records or schemas, functions that read a few fields from their own parameters, and Effect programs that only orchestrate calls to several services in sequence. Does this function spend most of its body reading fields of, or calling methods on, one other module's object or service (not its own module's state or its own parameters' plain data), so that the logic would be shorter and clearer if it lived in that other module?",
 		cutoff: 0.75,
-		message:
-			"Possibly Feature Envy: this function mostly reads and works on another module's data instead of its own, so changes to that data's rules have to be made here too. Consider Move Function into the module or service that owns the data (in Effect, an operation on that service, so callers yield the service and call it instead of reaching into its fields).",
+		message: "Feature envy: it mostly works on another module's data. Move it into that module or service.",
+		help: "This function mostly reads and works on another module's data instead of its own, so changes to that data's rules have to be made here too. Consider Move Function into the module or service that owns the data (in Effect, an operation on that service, so callers yield the service and call it instead of reaching into its fields).",
 	},
 	{
 		id: "data-clumps",
@@ -60,8 +61,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 			question: "Select the first parameter list or declaration where the repeated group of values appears.",
 			cutoff: 0.7,
 		},
-		message:
-			"Possibly Data Clumps: the same group of values travels together through several signatures or declarations here, so it is one concept without a name and every new use repeats the group. Consider Introduce Parameter Object or Extract Class (in Effect, one shared `Schema.Struct` for the group, passed and decoded as a single value).",
+		message: "Data clumps: the same values travel together in several places. Make them one schema.",
+		help: "The same group of values travels together through several signatures or declarations here, so it is one concept without a name and every new use repeats the group. Consider Introduce Parameter Object or Extract Class (in Effect, one shared `Schema.Struct` for the group, passed and decoded as a single value).",
 	},
 	{
 		id: "primitive-obsession",
@@ -69,8 +70,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 		question:
 			"Ignore values that are already branded or wrapped in a domain type, local loop counters and indexes, strings shown only to humans (labels, log messages), parameters of thin adapters that must match an external API's primitive signature, and generic utilities that are deliberately type-agnostic. Does this function accept, return, or compare raw strings, numbers, or booleans that stand for a domain concept with rules or a fixed set of values, such as identifiers that could be confused with each other, money, durations, email addresses, status or kind strings compared against literals, or boolean flags that select behavior, where a dedicated type would prevent mix-ups or invalid values?",
 		cutoff: 0.75,
-		message:
-			"Possibly Primitive Obsession: raw strings, numbers, or flags here stand for domain concepts, so an ID can be swapped for another ID or an invalid status can flow through unchecked. Consider Replace Primitive with Object (in Effect, a `Schema.brand` type for each identifier or quantity and a `Schema.Literal` union for each fixed set of values, decoded once at the boundary).",
+		message: "Primitive obsession: raw strings, numbers or flags stand for domain concepts. Use branded types and literal unions.",
+		help: "Raw strings, numbers, or flags here stand for domain concepts, so an ID can be swapped for another ID or an invalid status can flow through unchecked. Consider Replace Primitive with Object (in Effect, a `Schema.brand` type for each identifier or quantity and a `Schema.Literal` union for each fixed set of values, decoded once at the boundary).",
 	},
 	{
 		id: "middle-man",
@@ -82,8 +83,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 			question: "Select the first public operation that only forwards to a dependency.",
 			cutoff: 0.7,
 		},
-		message:
-			"Possibly Middle Man: most operations here only forward to one dependency, so this layer adds a name and an indirection without adding behavior. Consider Remove Middle Man or Inline Function: let callers use the dependency directly, or move real behavior (validation, mapping, retries) into this layer so it earns its place.",
+		message: "Middle man: most operations only forward to one dependency. Call it directly, or add real behavior here.",
+		help: "Most operations here only forward to one dependency, so this layer adds a name and an indirection without adding behavior. Consider Remove Middle Man or Inline Function: let callers use the dependency directly, or move real behavior (validation, mapping, retries) into this layer so it earns its place.",
 	},
 	{
 		id: "lazy-element",
@@ -95,8 +96,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 			question: "Select the declaration that should be inlined at its call sites.",
 			cutoff: 0.7,
 		},
-		message:
-			"Possibly Lazy Element: this declaration does almost nothing and has few users, so readers jump to it only to find one call or expression. Consider Inline Function or Inline Class: write its body at the call sites and delete it.",
+		message: "Lazy element: it does almost nothing and has few users. Inline it.",
+		help: "This declaration does almost nothing and has few users, so readers jump to it only to find one call or expression. Consider Inline Function or Inline Class: write its body at the call sites and delete it.",
 	},
 	{
 		id: "speculative-generality",
@@ -108,8 +109,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 			question: "Select the unused parameter, option, abstraction, or branch.",
 			cutoff: 0.7,
 		},
-		message:
-			"Possibly Speculative Generality: this file carries options, parameters, or abstractions that no current caller needs, so readers maintain flexibility nothing uses. Consider Collapse Hierarchy, Inline Function, Change Function Declaration to drop the unused parameter, or Remove Dead Code.",
+		message: "Speculative generality: options, parameters or abstractions no caller needs. Remove them.",
+		help: "This file carries options, parameters, or abstractions that no current caller needs, so readers maintain flexibility nothing uses. Consider Collapse Hierarchy, Inline Function, Change Function Declaration to drop the unused parameter, or Remove Dead Code.",
 	},
 	{
 		id: "temporary-field",
@@ -121,8 +122,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 			question: "Select the declaration of the field that is only valid in one operation or state.",
 			cutoff: 0.7,
 		},
-		message:
-			"Possibly Temporary Field: some fields here are only meaningful in one operation or state and empty otherwise, so every reader must know the current state to trust them. Consider Extract Class for the fields and the code that uses them, or split the type into tagged variants (in Effect, a `Data.TaggedEnum` or `Schema.TaggedUnion` where each variant carries only its own fields).",
+		message: "Temporary field: fields valid in only one operation or state. Extract them, or split the type into tagged variants.",
+		help: "Some fields here are only meaningful in one operation or state and empty otherwise, so every reader must know the current state to trust them. Consider Extract Class for the fields and the code that uses them, or split the type into tagged variants (in Effect, a `Data.TaggedEnum` or `Schema.TaggedUnion` where each variant carries only its own fields).",
 	},
 	{
 		id: "insider-trading",
@@ -130,8 +131,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 		question:
 			"Ignore imports of a module's public entry point or exported API, test files that inspect internals on purpose, and modules in the same package whose sharing is documented. Does this file reach into another module's internals, for example by importing from its internal or private paths, reading or writing its private or underscore-prefixed fields, depending on its internal data layout, or mutating state that module owns, instead of going through that module's public interface?",
 		cutoff: 0.75,
-		message:
-			"Possibly Insider Trading: this module depends on another module's internals, so neither can change its private structure without breaking the other. Consider Move Function so the logic lives with the data it needs, or Hide Delegate so the other module exposes one public operation for what this code uses (in Effect, a service operation instead of reaching into its implementation).",
+		message: "Insider trading: it reaches into another module's internals. Go through its public interface.",
+		help: "This module depends on another module's internals, so neither can change its private structure without breaking the other. Consider Move Function so the logic lives with the data it needs, or Hide Delegate so the other module exposes one public operation for what this code uses (in Effect, a service operation instead of reaching into its implementation).",
 	},
 	{
 		id: "data-class",
@@ -143,8 +144,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 			question: "Select the declaration of the class whose behavior lives elsewhere.",
 			cutoff: 0.7,
 		},
-		message:
-			"Possibly Data Class: this class only holds fields and accessors while the rules for its data live in other code, so those rules are scattered and easy to bypass. Consider Move Function to put that behavior on the class, and Encapsulate Record to stop exposing mutable fields; if the type is meant to be plain data, model it as an immutable `Schema.Struct` instead.",
+		message: "Data class: fields and accessors whose rules live elsewhere. Move the behavior onto it, or make it an immutable schema.",
+		help: "This class only holds fields and accessors while the rules for its data live in other code, so those rules are scattered and easy to bypass. Consider Move Function to put that behavior on the class, and Encapsulate Record to stop exposing mutable fields; if the type is meant to be plain data, model it as an immutable `Schema.Struct` instead.",
 	},
 	{
 		id: "comments",
@@ -152,8 +153,8 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 		question:
 			"Ignore comments that explain why (a reason, constraint, trade-off, or link to an issue), SAFETY: and similar invariant comments, doc comments on exported or public APIs, license headers, lint directives, and TODO comments. Does this function contain comments that narrate what the next lines do, label steps of a long body (such as '// step 1: load', '// validate input'), or explain what a confusing expression means, where extracting a well-named function, renaming a variable, or adding an assertion would make the comment unnecessary?",
 		cutoff: 0.7,
-		message:
-			"Possibly Comments: these comments narrate what the code does, which means the code is not saying it itself. Consider Extract Function named after each commented step, Rename Variable or Rename Function so the name carries the explanation, or Introduce Assertion for a commented assumption; keep only comments that explain why.",
+		message: "Comments narrate what the code does. Extract or rename so the code says it; keep comments that say why.",
+		help: "These comments narrate what the code does, which means the code is not saying it itself. Consider Extract Function named after each commented step, Rename Variable or Rename Function so the name carries the explanation, or Introduce Assertion for a commented assumption; keep only comments that explain why.",
 	},
 	{
 		id: "repeated-switches",
@@ -165,7 +166,7 @@ export const martinFowlerJevRules: ReadonlyArray<MartinFowlerJevRule> = [
 			question: "Select the second switch or conditional chain over the same union.",
 			cutoff: 0.7,
 		},
-		message:
-			"Possibly Repeated Switches: this file dispatches on the same union's cases in several places, so adding a case means finding and editing each one. Consider Replace Conditional with Polymorphism (in Effect, define the cases once as a `Data.TaggedEnum` or `Schema.TaggedUnion` and handle them in one exhaustive `Match` per behavior, or move each case's behavior onto its variant).",
+		message: "Repeated switches: the same union is dispatched in several places. Handle its cases in one `Match`.",
+		help: "This file dispatches on the same union's cases in several places, so adding a case means finding and editing each one. Consider Replace Conditional with Polymorphism (in Effect, define the cases once as a `Data.TaggedEnum` or `Schema.TaggedUnion` and handle them in one exhaustive `Match` per behavior, or move each case's behavior onto its variant).",
 	},
 ];

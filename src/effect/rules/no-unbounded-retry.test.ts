@@ -116,7 +116,7 @@ tester.run("anti-slop-effect/no-unbounded-retry", noUnboundedRetryRule, {
 			import * as Effect from "effect/Effect";
 			import * as Schedule from "effect/Schedule";
 			const ready = Effect.retry(check, Schedule.forever);`,
-			errors: unbounded,
+			errors: [{ messageId: "unboundedRetry", line: 4, column: 17, endLine: 4, endColumn: 29 }],
 		},
 		{
 			code: `

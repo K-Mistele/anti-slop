@@ -102,7 +102,7 @@ export const noReduceAccumulatorCopyRule = defineRule({
             isKnownArrayExpression(context.sourceCode, initialValue);
           copiesAccumulator = arrayAccumulator && isAccumulator(method.object);
         }
-        if (copiesAccumulator) context.report({ node, messageId: "accumulatorCopy" });
+        if (copiesAccumulator) context.report({ node, loc: node.callee.loc, messageId: "accumulatorCopy" });
       },
     };
   },

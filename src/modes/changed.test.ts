@@ -265,6 +265,20 @@ test("a wrapped third-party rule gets its own options without mode, and mode sti
 	assert.match(invalid.stdout + invalid.stderr, /Options validation failed for rule 'effect\/maxCognitiveComplexity'/);
 });
 
+test("a report that points loc at part of its node is filtered on the whole node", async () => {
+	const root = directory();
+	const call = (argument: string): string => `Reflect.apply(\n\tf,\n\t${argument},\n\t[],\n);\n`;
+	write(root, { ".gitignore": ".oxlintrc.json\n", "code.ts": call("null") });
+	sh(root, "init", "-q", "-b", "main");
+	sh(root, "add", ".");
+	sh(root, "commit", "-qm", "base");
+	// Only line 3, inside the call, changes; the report points at `Reflect.apply` on line 1.
+	write(root, { "code.ts": call("undefined") });
+	configure(root, { "anti-slop/no-reflect-apply": ["error", { mode: "changed" }] });
+	const changed = await lint(root, ["code.ts"]);
+	assert.deepEqual(changed.findings, ["code.ts:1 anti-slop(no-reflect-apply)"], changed.stderr);
+});
+
 /**
  * A decision-model server speaking TypeSafe's `/v1/systemone` wire format. It answers yes to every
  * question, "unknown" to every location question, and records the snippets it was sent.
