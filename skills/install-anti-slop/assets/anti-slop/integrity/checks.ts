@@ -1,6 +1,6 @@
-// Checks that a change weakens the lint setup in ways `ai-guard integrity` does not analyze: oxlint and eslint
-// disable comments without a reason, and oxlint config files that lower a rule's severity, turn a rule off,
-// add ignore patterns, or drop a JS plugin. Config files are read as text and never executed, so entries
+// Checks that a change weakens the lint setup in ways ai-guard's integrity analysis (`./ai-guard/`) does not catch:
+// oxlint and eslint disable comments without a reason, and oxlint config files that lower a rule's severity, turn a
+// rule off, add ignore patterns, or drop a JS plugin. Config files are read as text and never executed, so entries
 // computed at runtime (spreads, function calls) are not seen.
 
 // oxlint-disable effecttsgo/node-builtin-import -- a standalone CLI outside any Effect runtime, so Effect's platform services do not apply

@@ -49,7 +49,7 @@ const summary = (findings: ReadonlyArray<IntegrityFinding>): string[] =>
 
 const oxlintrc = (rules: string, extra = ""): string[] => [
 	"{",
-	'  "jsPlugins": [{ "name": "landmines", "specifier": "@interfere/landmines/testing" }, "eslint-plugin-ai-guard"],',
+	'  "jsPlugins": [{ "name": "landmines", "specifier": "@interfere/landmines/testing" }, "oxlint-plugin-effect"],',
 	`  "ignorePatterns": ["src/vendor/**"],${extra}`,
 	`  "rules": { ${rules} }`,
 	"}",
@@ -136,7 +136,7 @@ test("reports a removed jsPlugins entry, but not one pointed at a new module", (
 	);
 	const findings = checkIntegrity({ cwd: root }).findings;
 	assert.deepEqual(summary(findings), [".oxlintrc.json:- js-plugin-removed"]);
-	assert.match(findings[0]?.message ?? "", /eslint-plugin-ai-guard/);
+	assert.match(findings[0]?.message ?? "", /oxlint-plugin-effect/);
 });
 
 test("a deleted oxlint config removes its rules and plugins", () => {
