@@ -45,5 +45,5 @@ const antiSlopEffectPlugin = eslintCompatPlugin({
 	},
 });
 
-/** Every rule also takes `mode` in its options; see `modes/wrap.ts`. */
-export default withModes(antiSlopEffectPlugin);
+/** Every rule also takes `mode` in its options and reports only the first line it spans; see `modes/wrap.ts`. */
+export default withModes(antiSlopEffectPlugin, { firstLineOnly: true });

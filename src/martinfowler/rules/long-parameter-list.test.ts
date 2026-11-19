@@ -3,6 +3,8 @@ import { RuleTester } from "oxlint/plugins-dev";
 import { longParameterListRule } from "./long-parameter-list.ts";
 
 const tester = new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } });
+const message = (subject: string, count: number, max = 4) =>
+	`Long parameter list${subject}: ${count} positional parameters (limit ${max}). Pass one parameter object.`;
 
 tester.run("anti-slop-martinfowler/long-parameter-list", longParameterListRule, {
 	valid: [
@@ -20,20 +22,20 @@ tester.run("anti-slop-martinfowler/long-parameter-list", longParameterListRule, 
 	invalid: [
 		{
 			code: "function send(to, cc, subject, body, attachments) {}",
-			errors: [{ messageId: "long", data: { subject: "`send`", count: 5, max: 4 } }],
+			errors: [{ message: message(" `send`", 5), line: 1, column: 9, endLine: 1, endColumn: 13 }],
 		},
 		{
 			code: "const build = (a, b = 1, [c], d, e) => a;",
-			errors: [{ messageId: "long", data: { subject: "`build`", count: 5, max: 4 } }],
+			errors: [{ message: message(" `build`", 5), line: 1, column: 6, endLine: 1, endColumn: 11 }],
 		},
 		{
 			code: "class Store { constructor(a, b, c, d, e) {} }",
-			errors: [{ messageId: "long", data: { subject: "`constructor`", count: 5, max: 4 } }],
+			errors: [{ message: message(" `constructor`", 5), line: 1, column: 14, endLine: 1, endColumn: 25 }],
 		},
 		{
-			code: "items.map(function (a, b, c) {});",
+			code: "items.map(function (a, b, c) {\n  return a;\n});",
 			options: [{ max: 2 }],
-			errors: [{ messageId: "long", data: { subject: "This function", count: 3, max: 2 } }],
+			errors: [{ message: message("", 3, 2), line: 1, column: 10, endLine: 1, endColumn: 30 }],
 		},
 	],
 });

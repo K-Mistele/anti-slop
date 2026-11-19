@@ -24,7 +24,7 @@ export const mutableDataRule = defineRule({
 		},
 		messages: {
 			mutableData:
-				"Possibly Mutable Data: module-level `{{name}}` is reassigned inside {{functions}}, so its value depends on which functions ran before and in what order. Consider Encapsulate Variable so one owner controls every update, or Replace Derived Variable with Query if it can be computed from other data (in Effect, a `Ref` owned by a service, or a value derived where it is needed).",
+				"Mutable data `{{name}}`: module-level binding reassigned in {{functions}}. Give it one owner (in Effect, a service's `Ref`) or derive it where needed.",
 		},
 		schema: [
 			{

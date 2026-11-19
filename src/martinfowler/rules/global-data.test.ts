@@ -3,7 +3,9 @@ import { RuleTester } from "oxlint/plugins-dev";
 import { globalDataRule } from "./global-data.ts";
 
 const tester = new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } });
-const error = (name: string, how: string) => ({ messageId: "globalData", data: { name, how } });
+const error = (name: string, how: string) => ({
+	message: `Global data \`${name}\`: exported module state that ${how}. Keep it private behind functions (in Effect, a service's \`Ref\`).`,
+});
 
 tester.run("anti-slop-martinfowler/global-data", globalDataRule, {
 	valid: [
@@ -23,7 +25,9 @@ tester.run("anti-slop-martinfowler/global-data", globalDataRule, {
 	invalid: [
 		{
 			code: "export let current = null;",
-			errors: [error("current", "is declared with `let`, so it can be reassigned")],
+			errors: [
+				{ ...error("current", "is declared with `let`, so it can be reassigned"), line: 1, column: 11, endLine: 1, endColumn: 18 },
+			],
 		},
 		{
 			code: "export let current = null; export function set(value) { current = value; }",

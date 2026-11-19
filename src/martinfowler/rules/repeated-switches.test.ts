@@ -4,8 +4,7 @@ import { repeatedSwitchesRule } from "./repeated-switches.ts";
 
 const tester = new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } });
 const error = (expression: string, count: number) => ({
-	messageId: "repeated",
-	data: { expression, count },
+	message: `Repeated switch on \`${expression}\`: ${count} places branch on the same cases. Handle them in one exhaustive \`Match\` over a tagged union.`,
 });
 
 tester.run("anti-slop-martinfowler/repeated-switches", repeatedSwitchesRule, {
@@ -34,6 +33,27 @@ tester.run("anti-slop-martinfowler/repeated-switches", repeatedSwitchesRule, {
 		},
 	],
 	invalid: [
+		{
+			// Each switch is reported on its `switch (...) {` line, not its cases.
+			code: [
+				"function area(shape) {",
+				"  switch (shape.kind) {",
+				"    case 'circle': return 1;",
+				"    case 'square': return 2;",
+				"  }",
+				"}",
+				"function name(shape) {",
+				"  switch (shape.kind) {",
+				"    case 'circle': return 'c';",
+				"    case 'square': return 's';",
+				"  }",
+				"}",
+			].join("\n"),
+			errors: [
+				{ ...error("shape.kind", 2), line: 2, column: 2, endLine: 2, endColumn: 23 },
+				{ ...error("shape.kind", 2), line: 8, column: 2, endLine: 8, endColumn: 23 },
+			],
+		},
 		{
 			code: `
 				function area(shape) { switch (shape.kind) { case 'circle': return 1; case 'square': return 2; } }

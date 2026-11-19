@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 
 import type { Plugin, RuleOptionsSchema } from "@oxlint/plugins";
+import { RuleTester } from "oxlint/plugins-dev";
 
 import antiSlop from "../index.ts";
 import antiSlopEffect from "../effect/index.ts";
@@ -62,6 +63,20 @@ test("splitOptions hands the rule its own options and reads mode and base", () =
 	const untouched = [{ max: 3 }];
 	assert.equal(splitOptions(untouched).own, untouched, "options without mode or base pass through unchanged");
 	assert.equal(splitOptions(untouched).mode, "all");
+});
+
+test("anti-slop's own rules report only the first line of a multi-line node", () => {
+	const rule = antiSlopXState.rules["no-direct-xstate-create-machine"];
+	assert.ok(rule !== undefined);
+	new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run("first-line", rule, {
+		valid: [],
+		invalid: [
+			{
+				code: 'import { createMachine } from "xstate";\nconst machine = createMachine({\n  id: "toggle",\n});',
+				errors: [{ messageId: "directCreateMachine", line: 2, column: 16, endLine: 2, endColumn: 31 }],
+			},
+		],
+	});
 });
 
 let failed = 0;

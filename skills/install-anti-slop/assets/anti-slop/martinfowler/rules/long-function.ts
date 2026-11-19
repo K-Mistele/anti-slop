@@ -2,13 +2,13 @@ import { defineRule, type ESTree } from "@oxlint/plugins";
 
 import {
 	childNodes,
-	describeFunction,
 	functionName,
 	type FunctionNode,
-	functionReportNode,
+	functionReportLoc,
 	isFunctionNode,
 	isIgnoredTestFile,
 	lineSpan,
+	namedSubject,
 	numberOption,
 } from "../shared.ts";
 
@@ -57,7 +57,7 @@ export const longFunctionRule = defineRule({
 				"Flag functions whose own statements or lines exceed a threshold (Refactoring, Long Function).",
 		},
 		messages: {
-			long: "Possibly Long Function: {{subject}} has {{statements}} statements over {{lines}} lines of its own (limits {{maxStatements}} statements, {{maxLines}} lines), so a reader must hold every step in mind at once. Consider Extract Function: move each step into a function named for what it does (in Effect, a named `Effect.fn(\"domain.operation\")` step that this function yields).",
+			long: "Long function{{subject}}: {{size}}. Extract named steps.",
 		},
 		schema: [
 			{
@@ -83,15 +83,15 @@ export const longFunctionRule = defineRule({
 			const { statements, nestedLines } = measure(node.body);
 			const lines = lineSpan(node) - nestedLines;
 			if (statements <= maxStatements && lines <= maxLines) return;
+			const sizes: Array<string> = [];
+			if (lines > maxLines) sizes.push(`${lines} lines (limit ${maxLines})`);
+			if (statements > maxStatements) sizes.push(`${statements} statements (limit ${maxStatements})`);
 			context.report({
-				node: functionReportNode(node),
+				loc: functionReportLoc(node, context.sourceCode),
 				messageId: "long",
 				data: {
-					subject: describeFunction(functionName(node, context.sourceCode)),
-					statements,
-					lines,
-					maxStatements,
-					maxLines,
+					subject: namedSubject(functionName(node, context.sourceCode)),
+					size: sizes.join(", "),
 				},
 			});
 		};

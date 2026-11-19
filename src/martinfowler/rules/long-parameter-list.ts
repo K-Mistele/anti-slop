@@ -1,11 +1,11 @@
 import { defineRule, type ESTree } from "@oxlint/plugins";
 
 import {
-	describeFunction,
 	functionName,
 	type FunctionNode,
-	functionReportNode,
+	functionReportLoc,
 	isIgnoredTestFile,
+	namedSubject,
 	numberOption,
 } from "../shared.ts";
 
@@ -26,7 +26,7 @@ export const longParameterListRule = defineRule({
 				"Flag functions with more positional parameters than a threshold (Refactoring, Long Parameter List).",
 		},
 		messages: {
-			long: "Possibly Long Parameter List: {{subject}} takes {{count}} positional parameters (limit {{max}}), so every call site depends on argument order and adding one more breaks them all. Consider Introduce Parameter Object: group related parameters into one named input (in Effect, a `Schema.Struct` input type), or Preserve Whole Object when several come from the same value.",
+			long: "Long parameter list{{subject}}: {{count}} positional parameters (limit {{max}}). Pass one parameter object.",
 		},
 		schema: [
 			{
@@ -44,10 +44,10 @@ export const longParameterListRule = defineRule({
 			const count = node.params.filter(isPositional).length;
 			if (count <= max) return;
 			context.report({
-				node: functionReportNode(node),
+				loc: functionReportLoc(node, context.sourceCode),
 				messageId: "long",
 				data: {
-					subject: describeFunction(functionName(node, context.sourceCode)),
+					subject: namedSubject(functionName(node, context.sourceCode)),
 					count,
 					max,
 				},

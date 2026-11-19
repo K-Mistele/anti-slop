@@ -95,7 +95,7 @@ export const globalDataRule = defineRule({
 		},
 		messages: {
 			globalData:
-				"Possibly Global Data: exported `{{name}}` is module-level state that {{how}}, so any importer can read it while code anywhere changes it. Consider Encapsulate Variable: keep the state private and expose functions that own every read and write (in Effect, a `Ref` created in a service's layer and reached only through its operations).",
+				"Global data `{{name}}`: exported module state that {{how}}. Keep it private behind functions (in Effect, a service's `Ref`).",
 		},
 		schema: [
 			{

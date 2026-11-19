@@ -1,4 +1,6 @@
-import type { Context, ESTree, Options, Scope, SourceCode, Variable } from "@oxlint/plugins";
+import type { Context, ESTree, Location, Options, Scope, SourceCode, Variable } from "@oxlint/plugins";
+
+import { firstLineLoc } from "../shared/report-location.ts";
 
 type JsonValue = Options[number];
 type FunctionNode = ESTree.Function | ESTree.ArrowFunctionExpression;
@@ -140,80 +142,27 @@ export function resolveVariable(
 	return null;
 }
 
-function staticKeyName(
-	key: ESTree.Node,
-	computed: boolean,
-): string | undefined {
-	if (computed) return undefined;
-	if (key.type === "Identifier") return key.name;
-	if (key.type === "PrivateIdentifier") return `#${key.name}`;
-	if (key.type === "Literal" && typeof key.value === "string") return key.value;
-	return undefined;
-}
-
-function stringArgument(call: ESTree.CallExpression): string | undefined {
+function labelArgument(call: ESTree.CallExpression): ESTree.Node | undefined {
 	const first = call.arguments[0];
 	if (first === undefined) return undefined;
-	if (first.type === "Literal" && typeof first.value === "string") return first.value;
-	if (first.type === "TemplateLiteral" && first.expressions.length === 0) {
-		return first.quasis[0]?.value.cooked ?? undefined;
-	}
+	if (first.type === "Literal" && typeof first.value === "string") return first;
+	if (first.type === "TemplateLiteral" && first.expressions.length === 0) return first;
 	return undefined;
 }
 
-/** Name a function from its own id or the binding, key, or `Effect.fn("name")` that holds it. */
-export function functionName(node: FunctionNode, sourceCode: SourceCode): string | undefined {
-	if (node.type !== "ArrowFunctionExpression" && node.id !== null && node.id !== undefined) {
-		return node.id.name;
-	}
-	let holder: ESTree.Node = node;
-	let parent = node.parent;
-	while (isWrapper(parent)) {
-		holder = parent;
-		parent = parent.parent;
-	}
-	if (parent.type === "VariableDeclarator" && parent.id.type === "Identifier") {
-		return parent.id.name;
-	}
-	if (parent.type === "MethodDefinition" || parent.type === "Property") {
-		return staticKeyName(parent.key, parent.computed);
-	}
-	if (parent.type === "PropertyDefinition") return staticKeyName(parent.key, parent.computed);
-	if (parent.type === "AssignmentExpression" && parent.right === holder) {
-		return sourceCode.getText(parent.left);
-	}
-	if (parent.type === "CallExpression" && parent.callee !== holder) {
-		const callee = unwrap(parent.callee);
-		if (callee.type === "CallExpression") {
-			const label = stringArgument(callee);
-			if (label !== undefined) return label;
-		}
-		const traced = callee.type === "CallExpression" ? unwrap(callee.callee) : callee;
-		const isEffectConstructor =
-			traced.type === "MemberExpression" &&
-			!traced.computed &&
-			traced.property.type === "Identifier" &&
-			["fn", "fnUntraced", "gen"].includes(traced.property.name);
-		if (!isEffectConstructor) return undefined;
-		let declarator: ESTree.Node | null = parent.parent;
-		while (declarator?.type === "CallExpression" || isWrapper(declarator)) {
-			declarator = declarator.parent;
-		}
-		if (declarator?.type === "VariableDeclarator" && declarator.id.type === "Identifier") {
-			return declarator.id.name;
-		}
-	}
-	return undefined;
+function isEffectConstructor(callee: ESTree.Expression): boolean {
+	return (
+		callee.type === "MemberExpression" &&
+		!callee.computed &&
+		callee.property.type === "Identifier" &&
+		["fn", "fnUntraced", "gen"].includes(callee.property.name)
+	);
 }
 
-/** The node to underline for a function: its name when it has one, otherwise the function. */
-export function functionReportNode(node: FunctionNode): ESTree.Node {
-	if (node.type !== "ArrowFunctionExpression" && node.id !== null && node.id !== undefined) {
-		return node.id;
-	}
-	let parent = node.parent;
-	while (isWrapper(parent)) parent = parent.parent;
-	if (parent.type === "VariableDeclarator") return parent.id;
+/** The binding, key, or assignment target that names `holder`, the expression `parent` holds. */
+function holderNameNode(holder: ESTree.Node, parent: ESTree.Node | null): ESTree.Node | undefined {
+	if (parent === null) return undefined;
+	if (parent.type === "VariableDeclarator") return parent.id.type === "Identifier" ? parent.id : undefined;
 	if (
 		parent.type === "MethodDefinition" ||
 		parent.type === "Property" ||
@@ -221,11 +170,74 @@ export function functionReportNode(node: FunctionNode): ESTree.Node {
 	) {
 		return parent.key;
 	}
-	return node;
+	if (parent.type === "AssignmentExpression" && parent.right === holder) return parent.left;
+	return undefined;
 }
 
-export function describeFunction(name: string | undefined): string {
-	return name === undefined ? "This function" : `\`${name}\``;
+/**
+ * The node that names a function: its own id, the `Effect.fn("name")` label, or the binding,
+ * property key, or assignment target that holds it, also through `Effect.fn`/`Effect.gen` calls
+ * (so `make: Effect.gen(function* ...)` is named by `make`). Undefined for anonymous callbacks.
+ */
+export function functionNameNode(node: FunctionNode): ESTree.Node | undefined {
+	if (node.type !== "ArrowFunctionExpression" && node.id !== null && node.id !== undefined) {
+		return node.id;
+	}
+	let holder: ESTree.Node = node;
+	let parent = node.parent;
+	while (isWrapper(parent)) {
+		holder = parent;
+		parent = parent.parent;
+	}
+	if (parent.type !== "CallExpression" || parent.callee === holder) return holderNameNode(holder, parent);
+	const callee = unwrap(parent.callee);
+	if (callee.type === "CallExpression") {
+		const label = labelArgument(callee);
+		if (label !== undefined) return label;
+	}
+	if (!isEffectConstructor(callee.type === "CallExpression" ? unwrap(callee.callee) : callee)) {
+		return undefined;
+	}
+	let outer: ESTree.Node = parent;
+	let above: ESTree.Node | null = parent.parent;
+	while (above?.type === "CallExpression" || isWrapper(above)) {
+		outer = above;
+		above = above.parent;
+	}
+	return holderNameNode(outer, above);
+}
+
+function isComputedKey(name: ESTree.Node): boolean {
+	const parent = name.parent;
+	return (
+		parent !== null &&
+		(parent.type === "MethodDefinition" ||
+			parent.type === "Property" ||
+			parent.type === "PropertyDefinition") &&
+		parent.key === name &&
+		parent.computed
+	);
+}
+
+/** Name a function from its own id or the binding, key, or `Effect.fn("name")` that holds it. */
+export function functionName(node: FunctionNode, sourceCode: SourceCode): string | undefined {
+	const name = functionNameNode(node);
+	if (name === undefined || isComputedKey(name)) return undefined;
+	if (name.type === "Identifier") return name.name;
+	if (name.type === "PrivateIdentifier") return `#${name.name}`;
+	if (name.type === "Literal") return typeof name.value === "string" ? name.value : undefined;
+	if (name.type === "TemplateLiteral") return name.quasis[0]?.value.cooked ?? undefined;
+	return sourceCode.getText(name);
+}
+
+/** Where to report a function: its name when it has one, otherwise the function's first line. */
+export function functionReportLoc(node: FunctionNode, sourceCode: SourceCode): Location {
+	return firstLineLoc(sourceCode, (functionNameNode(node) ?? node).loc);
+}
+
+/** `` `name` `` after a smell name in a message, or nothing for an anonymous function. */
+export function namedSubject(name: string | undefined): string {
+	return name === undefined ? "" : ` \`${name}\``;
 }
 
 export function truncate(text: string, max = 80): string {
