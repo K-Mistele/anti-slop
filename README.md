@@ -198,6 +198,7 @@ export default defineConfig({
       // Tests throw inside Effect generators, run Effects, and fan out fixtures on purpose.
       files: ["**/*.test.*", "**/*.spec.*", "**/test/**", "**/tests/**", "**/__tests__/**"],
       rules: {
+        complexity: "off",
         "anti-slop-effect/throw-in-effect-gen": "off",
         "effect/noUnboundedConcurrency": "off",
         "enfect/effect-promise-vs-trypromise": "off",

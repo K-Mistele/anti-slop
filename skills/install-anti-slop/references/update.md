@@ -95,7 +95,7 @@ Effect installations with the `enfect` plugin entry but without `enfect/prefer-d
 
 Effect installations with the `enfect` plugin entry but without `enfect/prefer-option-over-null` predate it; offer it at `"error"` everywhere, tests included, with its finding count, because it reports every `T | null` and `T | undefined` union in a type position and is noisy in established codebases. An installation without `anti-slop/no-instanceof` predates it; offer it as a new core rule at `"error"` everywhere, tests included, with its finding count. `effecttsgo/instance-of-schema` covers only Effect Schema types, so keep both.
 
-An installation without `complexity` predates the cyclomatic complexity check; offer Oxlint's built-in `complexity` rule as `["warn", { "max": 15 }]` everywhere, tests included, with its warning count. It is a built-in rule, so it cannot take `mode: "changed"`.
+An installation without `complexity` predates the cyclomatic complexity check; offer Oxlint's built-in `complexity` rule as `["warn", { "max": 15 }]`, with `complexity: "off"` in the test override (`**/*.test.*`, `**/*.spec.*`, `**/test/**`, `**/tests/**`, `**/__tests__/**`), and its warning count. An installation with `complexity` enabled in tests predates the test exemption; propose adding `complexity: "off"` to the test override. It is a built-in rule, so it cannot take `mode: "changed"`.
 
 An installation without the `anti-slop-xstate` plugin entry predates the XState rules. When a package manifest declares `xstate` directly, offer the six rules a fresh install enables; otherwise leave them out.
 

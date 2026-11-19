@@ -63,6 +63,7 @@ export default defineConfig({
 		{
 			files: ["**/*.test.*", "**/*.spec.*", "**/test/**", "**/tests/**", "**/__tests__/**"],
 			rules: {
+				complexity: "off",
 				"effect/noUnboundedConcurrency": "off",
 				"enfect/effect-promise-vs-trypromise": "off",
 				"enfect/avoid-option-getorthrow": "off",
