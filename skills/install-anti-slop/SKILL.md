@@ -125,7 +125,7 @@ Complete when the operation and target path are established and pre-existing wor
 
    Pair `no-reduce-accumulator-copy` with native `oxc/no-accumulating-spread`: the custom rule catches supported non-spread copies such as `Object.assign({}, acc, item)`, `Array.from(acc)`, and array accumulator `concat`/`slice` calls. Mutating a fresh local accumulator is allowed; copying individual input items is also allowed. Named callbacks, indirect helpers, and nested accumulator properties are not fully analyzed, so do not claim all quadratic reducers are ruled out.
 
-   Enable Oxlint's built-in `complexity` rule (`eslint/complexity`, cyclomatic complexity) at `"warn"` with `max` 15, everywhere including tests. It is a built-in rule, so it cannot take `mode: "changed"`; report its warning count instead of fixing them.
+   Enable Oxlint's built-in `complexity` rule (`eslint/complexity`, cyclomatic complexity) at `"warn"` with `max` 15, turned off for test files with an `overrides` entry (`complexity: "off"`) whose `files` are `["**/*.test.*", "**/*.spec.*", "**/test/**", "**/tests/**", "**/__tests__/**"]`, adapted to the repository's test layout; with the Effect plugin, put it in the shared test override below. It is a built-in rule, so it cannot take `mode: "changed"`; report its warning count instead of fixing them.
 
    Pair the type-assertion rules with native `typescript/no-non-null-assertion`: `value!` asserts that a value is present with no check and no stated invariant, and `require-safety-comment-for-type-assertion` and `no-chained-type-assertions` only see `as` and `<T>` assertions. When cleanup is authorized, replace each one with a check that narrows (an early return, a thrown invariant error, or an `Option`/`undefined` branch), never with an `as` cast or a disable comment. The rule is in Oxlint's `typescript` plugin, which is on by default; a config that sets `plugins` must list `"typescript"`.
 
@@ -162,7 +162,7 @@ Complete when the operation and target path are established and pre-existing wor
      {
        // The shared test override. The cevr and enfect sections below add their test-only rules to it.
        files: ["**/*.test.*", "**/*.spec.*", "**/test/**", "**/tests/**", "**/__tests__/**"],
-       rules: { "anti-slop-effect/throw-in-effect-gen": "off" },
+       rules: { complexity: "off", "anti-slop-effect/throw-in-effect-gen": "off" },
      },
    ],
    ```
@@ -242,6 +242,7 @@ Complete when the operation and target path are established and pre-existing wor
        // entries for plugins the repository registers.
        files: ["**/*.test.*", "**/*.spec.*", "**/test/**", "**/tests/**", "**/__tests__/**"],
        rules: {
+         complexity: "off",
          "anti-slop-effect/throw-in-effect-gen": "off",
          "effect/noUnboundedConcurrency": "off", // Effect 4.1 or later only
          "enfect/effect-promise-vs-trypromise": "off",
