@@ -101,9 +101,9 @@ export const mysteriousNameRule = defineRule({
 		},
 		messages: {
 			genericName:
-				"Possibly Mysterious Name: `{{name}}` is a generic verb with no object, so callers cannot tell which steps it performs or what it reads, writes, or calls. Consider Rename Function: name each caller-visible step it performs (for example `resolveConfiguration` → `loadAndReconcileConfigurationSources`).",
+				"Mysterious name `{{name}}`: a generic verb with no object. Rename it for the steps it performs.",
 			alias:
-				"Possibly Mysterious Name: `{{name}}` only aliases `{{target}}`, so one behavior has two names and readers must check whether they differ. Consider Rename Function: delete the alias and call `{{target}}` directly, or rename the one function so its name states what it does.",
+				"Mysterious name `{{name}}`: only an alias of `{{target}}`. Call `{{target}}` directly.",
 		},
 		schema: [
 			{
@@ -185,7 +185,7 @@ export const mysteriousNameRule = defineRule({
 				const target = aliasedFunctionName(context.sourceCode, declarator.init);
 				if (target === undefined || target === declarator.id.name) return;
 				context.report({
-					node: declarator,
+					node: declarator.id,
 					messageId: "alias",
 					data: { name: declarator.id.name, target },
 				});

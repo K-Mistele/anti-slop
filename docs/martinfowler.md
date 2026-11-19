@@ -13,7 +13,16 @@ coding agent which refactoring to apply. It has two parts:
   `anti-slop-martinfowler-jev`, one rule per smell. These cost a request per file, so they run only
   on changed code.
 
-Every diagnostic, from either part, has the same form, because a coding model reads it:
+The two parts word their diagnostics differently. The AST rules print one short line pointing at the
+symbol's name (or, for an anonymous function, loop, switch, or chain, only the node's first line),
+with the measured numbers and a fix:
+
+```text
+Long function `makeStreamOperations`: 82 lines (limit 80). Extract named steps.
+```
+
+The jev rules, which a coding model reads as the only explanation of a judgement call, keep the
+longer form:
 
 ```text
 Possibly <Smell>: <why this finding matters>. Consider <Refactoring> (<Effect form>).

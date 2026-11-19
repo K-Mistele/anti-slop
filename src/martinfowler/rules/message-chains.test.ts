@@ -4,8 +4,7 @@ import { messageChainsRule } from "./message-chains.ts";
 
 const tester = new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } });
 const error = (chain: string, depth: number, maxDepth = 3) => ({
-	messageId: "chain",
-	data: { chain, depth, maxDepth },
+	message: `Message chain \`${chain}\`: ${depth} objects deep (limit ${maxDepth}). Hide the delegate behind one method.`,
 });
 
 tester.run("anti-slop-martinfowler/message-chains", messageChainsRule, {
@@ -28,7 +27,12 @@ tester.run("anti-slop-martinfowler/message-chains", messageChainsRule, {
 	invalid: [
 		{
 			code: "const name = order.customer.address.city.name;",
-			errors: [error("order.customer.address.city.name", 4)],
+			errors: [{ ...error("order.customer.address.city.name", 4), line: 1, column: 13, endLine: 1, endColumn: 45 }],
+		},
+		{
+			// A chain split over lines is reported on its first line only.
+			code: "const name = order\n  .customer\n  .address\n  .city\n  .name;",
+			errors: [{ ...error("order .customer .address .city .name", 4), line: 1, column: 13, endLine: 1, endColumn: 18 }],
 		},
 		{
 			code: "const theme = session.getUser().getProfile().getSettings().getTheme();",

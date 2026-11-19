@@ -3,7 +3,12 @@ import { RuleTester } from "oxlint/plugins-dev";
 import { mysteriousNameRule } from "./mysterious-name.ts";
 
 const tester = new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } });
-const generic = (name: string) => ({ messageId: "genericName", data: { name } });
+const generic = (name: string) => ({
+	message: `Mysterious name \`${name}\`: a generic verb with no object. Rename it for the steps it performs.`,
+});
+const alias = (name: string, target: string) => ({
+	message: `Mysterious name \`${name}\`: only an alias of \`${target}\`. Call \`${target}\` directly.`,
+});
 
 tester.run("anti-slop-martinfowler/mysterious-name", mysteriousNameRule, {
 	valid: [
@@ -38,7 +43,10 @@ tester.run("anti-slop-martinfowler/mysterious-name", mysteriousNameRule, {
 		},
 	],
 	invalid: [
-		{ code: "export function resolve() {}", errors: [generic("resolve")] },
+		{
+			code: "export function resolve() {}",
+			errors: [{ ...generic("resolve"), line: 1, column: 16, endLine: 1, endColumn: 23 }],
+		},
 		{ code: "export async function process(input: Input) {}", errors: [generic("process")] },
 		{ code: "function handle() {}", errors: [generic("handle")] },
 		{ code: "export default function execute() {}", errors: [generic("execute")] },
@@ -59,16 +67,8 @@ tester.run("anti-slop-martinfowler/mysterious-name", mysteriousNameRule, {
 			errors: [generic("load")],
 		},
 		{
-			code: `
-				function refreshAuthentication() {}
-				export const executeMutation = refreshAuthentication;
-			`,
-			errors: [
-				{
-					messageId: "alias",
-					data: { name: "executeMutation", target: "refreshAuthentication" },
-				},
-			],
+			code: "function refreshAuthentication() {}\nexport const executeMutation = refreshAuthentication;",
+			errors: [{ ...alias("executeMutation", "refreshAuthentication"), line: 2, column: 13, endLine: 2, endColumn: 28 }],
 		},
 		{
 			code: `
@@ -78,19 +78,14 @@ tester.run("anti-slop-martinfowler/mysterious-name", mysteriousNameRule, {
 					return { executeMutation };
 				});
 			`,
-			errors: [
-				{
-					messageId: "alias",
-					data: { name: "executeMutation", target: "refreshAuthentication" },
-				},
-			],
+			errors: [alias("executeMutation", "refreshAuthentication")],
 		},
 		{
 			code: `
 				const loadSlot = Effect.fn("slot.load")(function* () {});
 				const fetchSlot = loadSlot;
 			`,
-			errors: [{ messageId: "alias", data: { name: "fetchSlot", target: "loadSlot" } }],
+			errors: [alias("fetchSlot", "loadSlot")],
 		},
 	],
 });

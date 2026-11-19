@@ -3,7 +3,9 @@ import { RuleTester } from "oxlint/plugins-dev";
 import { loopsRule } from "./loops.ts";
 
 const tester = new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } });
-const error = (target: string, how: string) => ({ messageId: "loop", data: { target, how } });
+const error = (target: string, how: string) => ({
+	message: `Loop builds \`${target}\` by ${how}. Replace it with a pipeline (\`map\`/\`filter\`, or \`Effect.forEach\`).`,
+});
 
 tester.run("anti-slop-martinfowler/loops", loopsRule, {
 	valid: [
@@ -35,6 +37,11 @@ tester.run("anti-slop-martinfowler/loops", loopsRule, {
 		"const out = []; for (const x of xs) { for (const y of x) { if (y) break; } }",
 	],
 	invalid: [
+		{
+			// Only the loop's first line is reported, not its body.
+			code: "const emails = [];\nfor (const user of users) {\n  if (user.active) emails.push(user.email);\n}",
+			errors: [{ ...error("emails", "calling `.push`"), line: 2, column: 0, endLine: 2, endColumn: 27 }],
+		},
 		{
 			code: "const emails = []; for (const user of users) { if (user.active) emails.push(user.email); }",
 			errors: [error("emails", "calling `.push`")],

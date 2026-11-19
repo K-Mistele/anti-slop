@@ -4,8 +4,7 @@ import { mutableDataRule } from "./mutable-data.ts";
 
 const tester = new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } });
 const error = (name: string, functions: string) => ({
-	messageId: "mutableData",
-	data: { name, functions },
+	message: `Mutable data \`${name}\`: module-level binding reassigned in ${functions}. Give it one owner (in Effect, a service's \`Ref\`) or derive it where needed.`,
 });
 
 tester.run("anti-slop-martinfowler/mutable-data", mutableDataRule, {
@@ -23,7 +22,7 @@ tester.run("anti-slop-martinfowler/mutable-data", mutableDataRule, {
 	invalid: [
 		{
 			code: "let count = 0; export function bump() { count += 1; }",
-			errors: [error("count", "1 function")],
+			errors: [{ ...error("count", "1 function"), line: 1, column: 4, endLine: 1, endColumn: 9 }],
 		},
 		{
 			code: "let cached; export const get = () => { cached ??= load(); return cached; }; export function reset() { cached = undefined; }",

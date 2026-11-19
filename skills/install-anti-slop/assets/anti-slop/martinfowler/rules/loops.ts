@@ -10,6 +10,7 @@ import {
 	resolveVariable,
 	unwrap,
 } from "../shared.ts";
+import { firstLineLoc } from "../../shared/report-location.ts";
 
 type LoopNode =
 	| ESTree.ForStatement
@@ -190,7 +191,7 @@ export const loopsRule = defineRule({
 				"Flag loops that build an array, object, Map, or Set declared outside the loop (Refactoring, Loops).",
 		},
 		messages: {
-			loop: "Possibly Loops: this loop builds `{{target}}` by {{how}} on each iteration, so the transformation is hidden inside control flow and mutation. Consider Replace Loop with Pipeline: express it as `map`/`filter`/`flatMap`/`groupBy` over the source (Effect's `Arr` and `Record` modules, or `Object.fromEntries`), or `Effect.forEach`/`Stream` when each iteration runs an effect.",
+			loop: "Loop builds `{{target}}` by {{how}}. Replace it with a pipeline (`map`/`filter`, or `Effect.forEach`).",
 		},
 		schema: [
 			{
@@ -235,7 +236,7 @@ export const loopsRule = defineRule({
 				}
 				if (reportedByOuterLoop) continue;
 				context.report({
-					node: loop,
+					loc: firstLineLoc(context.sourceCode, loop.loc),
 					messageId: "loop",
 					data: { target: site.target.name, how: site.how },
 				});

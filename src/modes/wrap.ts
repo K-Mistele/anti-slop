@@ -1,7 +1,8 @@
 // oxlint-disable effecttsgo/global-console, effecttsgo/process-env -- runs inside oxlint's plugin host, outside any Effect runtime, and warns the way oxlint plugins do
 
-import type { Context, Diagnostic, Plugin, Rule, RuleOptionsSchema, VisitorWithHooks } from "@oxlint/plugins";
+import type { Context, Diagnostic, Location, Plugin, Rule, RuleOptionsSchema, SourceCode, VisitorWithHooks } from "@oxlint/plugins";
 
+import { firstLineLoc } from "../shared/report-location.ts";
 import { changedLines, overlaps, type Mode } from "./changed.ts";
 
 /** The options `withModes` adds to every rule it wraps, next to the rule's own. */
@@ -98,6 +99,29 @@ function spanOfLoc(loc: unknown): LineSpan | undefined {
 	return { start, end: lineOf(loc.end) ?? start };
 }
 
+/** How `withModes` changes reports besides filtering them by mode. */
+export interface WrapOptions {
+	/** Cut every report to the first line it spans. For anti-slop's own plugins; third-party plugins keep their spans. */
+	readonly firstLineOnly?: boolean;
+}
+
+/** The full `{ start, end }` a diagnostic covers, or `undefined` for a single-point `loc`. */
+function rangeOf(sourceCode: SourceCode, diagnostic: Diagnostic): Location | undefined {
+	const { loc, node } = diagnostic;
+	if (loc !== undefined && loc !== null) {
+		if (!("start" in loc) || loc.end === undefined || loc.end === null) return undefined;
+		return { start: loc.start, end: loc.end };
+	}
+	if (node === undefined) return undefined;
+	return { start: sourceCode.getLocFromIndex(node.range[0]), end: sourceCode.getLocFromIndex(node.range[1]) };
+}
+
+function onFirstLine(sourceCode: SourceCode, diagnostic: Diagnostic): Diagnostic {
+	const range = rangeOf(sourceCode, diagnostic);
+	if (range === undefined || range.start.line === range.end.line) return diagnostic;
+	return { ...diagnostic, loc: firstLineLoc(sourceCode, range) };
+}
+
 const spanOf = (diagnostic: Diagnostic): LineSpan | undefined =>
 	spanOfLoc(diagnostic.loc) ?? (isRecord(diagnostic.node) ? spanOfLoc(diagnostic.node.loc) : undefined);
 
@@ -110,13 +134,15 @@ function linesToCheck(context: Context): ReturnType<typeof changedLines> {
 
 /**
  * A context that hides `mode` and `base` from the rule's options and, in `"changed"` mode, drops
- * reports that touch no changed line. A report whose lines cannot be read is kept.
+ * reports that touch no changed line. A report whose lines cannot be read is kept. With
+ * `firstLineOnly`, the span is cut to its first line only after that check, so a change anywhere
+ * in a reported function still counts.
  */
-function modeContext(context: Context): Context {
+function modeContext(context: Context, options: WrapOptions): Context {
 	const report = (diagnostic: Diagnostic): void => {
 		const span = spanOf(diagnostic);
 		if (span !== undefined && !overlaps(linesToCheck(context), span.start, span.end)) return;
-		context.report(diagnostic);
+		context.report(options.firstLineOnly === true ? onFirstLine(context.sourceCode, diagnostic) : diagnostic);
 	};
 	// Oxlint keeps a rule's per-file state (filename, options, settings) behind getters on the
 	// context, so a context inheriting from the real one reads the current file's values.
@@ -132,24 +158,24 @@ const isUnchanged = (context: Context): boolean => {
 	return lines !== "all" && lines.size === 0;
 };
 
-function wrapRule(rule: Rule): Rule {
+function wrapRule(rule: Rule, options: WrapOptions): Rule {
 	const schema = schemaWithMode(rule.meta?.schema);
 	if (schema === undefined) return rule;
 	const meta = { ...rule.meta, schema };
 	const { create } = rule;
 	// `create` runs once per file, so a file with no changed lines can skip the rule entirely.
 	const wrappedCreate =
-		create === undefined ? undefined : (context: Context) => (isUnchanged(context) ? {} : create(modeContext(context)));
+		create === undefined ? undefined : (context: Context) => (isUnchanged(context) ? {} : create(modeContext(context, options)));
 	if ("createOnce" in rule) {
 		const { createOnce } = rule;
 		return {
 			...rule,
 			meta,
-			createOnce: (context: Context): VisitorWithHooks => createOnce(modeContext(context)),
+			createOnce: (context: Context): VisitorWithHooks => createOnce(modeContext(context, options)),
 			...(wrappedCreate === undefined ? {} : { create: wrappedCreate }),
 		};
 	}
-	return { ...rule, meta, create: (context: Context) => (isUnchanged(context) ? {} : rule.create(modeContext(context))) };
+	return { ...rule, meta, create: (context: Context) => (isUnchanged(context) ? {} : rule.create(modeContext(context, options))) };
 }
 
 /**
@@ -157,9 +183,9 @@ function wrapRule(rule: Rule): Rule {
  * `"rule": ["error", { mode: "changed" }]`. The wrapped rule never sees them. A rule whose first
  * option is not an object, or already has a `mode` or `base` option, is left as it is.
  */
-export function withModes(plugin: Plugin): Plugin {
+export function withModes(plugin: Plugin, options: WrapOptions = {}): Plugin {
 	return {
 		...plugin,
-		rules: Object.fromEntries(Object.entries(plugin.rules).map(([name, rule]) => [name, wrapRule(rule)])),
+		rules: Object.fromEntries(Object.entries(plugin.rules).map(([name, rule]) => [name, wrapRule(rule, options)])),
 	};
 }

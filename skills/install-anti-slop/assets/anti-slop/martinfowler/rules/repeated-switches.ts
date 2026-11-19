@@ -1,6 +1,7 @@
 import { defineRule, type ESTree } from "@oxlint/plugins";
 
 import { isIgnoredTestFile, isWrapper, numberOption, truncate, unwrap } from "../shared.ts";
+import { firstLineLoc } from "../../shared/report-location.ts";
 
 const equalityOperators = new Set(["==", "===", "!=", "!=="]);
 const defaultMinOccurrences = 2;
@@ -45,7 +46,7 @@ export const repeatedSwitchesRule = defineRule({
 		},
 		messages: {
 			repeated:
-				"Possibly Repeated Switches: this file branches on `{{expression}}` over the same cases in {{count}} places, so adding a case means finding and editing every one of them. Consider Replace Conditional with Polymorphism: model the cases as a `Data.TaggedEnum` (or `Schema.TaggedUnion`) and handle them in one exhaustive `Match.type`/`Match.tags` … `Match.exhaustive`, or move each case's behavior onto its variant.",
+				"Repeated switch on `{{expression}}`: {{count}} places branch on the same cases. Handle them in one exhaustive `Match` over a tagged union.",
 		},
 		schema: [
 			{
@@ -202,7 +203,7 @@ export const repeatedSwitchesRule = defineRule({
 					if (repeated.length < minOccurrences) continue;
 					for (const entry of repeated) {
 						context.report({
-							node: entry.node,
+							loc: firstLineLoc(context.sourceCode, entry.node.loc),
 							messageId: "repeated",
 							data: { expression: truncate(expression, 60), count: repeated.length },
 						});

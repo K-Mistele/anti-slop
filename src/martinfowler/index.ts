@@ -12,7 +12,8 @@ import { withModes } from "../modes/wrap.ts";
 
 /**
  * Opt-in Oxlint rules named after the code smells in Martin Fowler's *Refactoring* (2nd ed.,
- * chapter 3). Every message names the smell and the refactoring to apply; enable them at `warn`.
+ * chapter 3). Every message names the smell, the symbol, and the fix, and points at the symbol's name;
+ * enable them at `warn`.
  */
 const antiSlopMartinFowlerPlugin = eslintCompatPlugin({
 	meta: { name: "anti-slop-martinfowler" },
@@ -28,5 +29,5 @@ const antiSlopMartinFowlerPlugin = eslintCompatPlugin({
 	},
 });
 
-/** Every rule also takes `mode` in its options; see `modes/wrap.ts`. */
-export default withModes(antiSlopMartinFowlerPlugin);
+/** Every rule also takes `mode` in its options and reports only the first line it spans; see `modes/wrap.ts`. */
+export default withModes(antiSlopMartinFowlerPlugin, { firstLineOnly: true });

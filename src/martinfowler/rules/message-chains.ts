@@ -9,6 +9,7 @@ import {
 	truncate,
 	unwrap,
 } from "../shared.ts";
+import { firstLineLoc } from "../../shared/report-location.ts";
 
 const defaultMaxDepth = 3;
 const defaultIgnoreRoots = [
@@ -110,7 +111,7 @@ export const messageChainsRule = defineRule({
 				"Flag property and getter chains that navigate through more objects than a threshold (Refactoring, Message Chains).",
 		},
 		messages: {
-			chain: "Possibly Message Chains: `{{chain}}` navigates through {{depth}} objects (limit {{maxDepth}}), so this code depends on the structure of every object along the path. Consider Hide Delegate: ask the first object for what you need through one method (in Effect, a service operation that returns the value), or Extract Function on the chain and Move Function it next to the data it walks.",
+			chain: "Message chain `{{chain}}`: {{depth}} objects deep (limit {{maxDepth}}). Hide the delegate behind one method.",
 		},
 		schema: [
 			{
@@ -154,7 +155,7 @@ export const messageChainsRule = defineRule({
 					if (ignorePascalCase && /^[A-Z]/.test(root.name)) return;
 				}
 				context.report({
-					node: top,
+					loc: firstLineLoc(context.sourceCode, top.loc),
 					messageId: "chain",
 					data: {
 						chain: truncate(context.sourceCode.getText(top), 60),
