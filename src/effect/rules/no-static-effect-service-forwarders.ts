@@ -225,6 +225,7 @@ export const noStaticEffectServiceForwardersRule = defineRule({
 				if (method === null) continue;
 				context.report({
 					node: member.node,
+					loc: member.node.key.loc,
 					messageId: "staticForwarder",
 					data: { service: className ?? "the service", name: member.name, method },
 				});

@@ -14,7 +14,7 @@ tester.run("anti-slop/no-module-mocking", noModuleMockingRule, {
     "import { vi as localVi } from './helpers'; localVi.mock('./module');",
   ],
   invalid: [
-    { code: "vi.mock('./user-store');", errors: [error] },
+    { code: "vi.mock('./user-store');", errors: [{ ...error, line: 1, column: 0, endLine: 1, endColumn: 7 }] },
     { code: "jest.mock('./user-store');", errors: [error] },
     { code: "vi['doMock']('./user-store');", errors: [error] },
     { code: "jest.unstable_mockModule('./user-store');", errors: [error] },

@@ -34,7 +34,7 @@ tester.run("anti-slop-martinfowler/repeated-switches", repeatedSwitchesRule, {
 	],
 	invalid: [
 		{
-			// Each switch is reported on its `switch (...) {` line, not its cases.
+			// Each switch is reported at the value it switches on, not its cases.
 			code: [
 				"function area(shape) {",
 				"  switch (shape.kind) {",
@@ -50,8 +50,8 @@ tester.run("anti-slop-martinfowler/repeated-switches", repeatedSwitchesRule, {
 				"}",
 			].join("\n"),
 			errors: [
-				{ ...error("shape.kind", 2), line: 2, column: 2, endLine: 2, endColumn: 23 },
-				{ ...error("shape.kind", 2), line: 8, column: 2, endLine: 8, endColumn: 23 },
+				{ ...error("shape.kind", 2), line: 2, column: 10, endLine: 2, endColumn: 20 },
+				{ ...error("shape.kind", 2), line: 8, column: 10, endLine: 8, endColumn: 20 },
 			],
 		},
 		{

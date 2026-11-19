@@ -1,6 +1,6 @@
 import type { Context, ESTree, Location, Options, Scope, SourceCode, Variable } from "@oxlint/plugins";
 
-import { firstLineLoc } from "../shared/report-location.ts";
+import { firstLineLoc, nameLoc } from "../shared/report-location.ts";
 
 type JsonValue = Options[number];
 type FunctionNode = ESTree.Function | ESTree.ArrowFunctionExpression;
@@ -230,9 +230,18 @@ export function functionName(node: FunctionNode, sourceCode: SourceCode): string
 	return sourceCode.getText(name);
 }
 
-/** Where to report a function: its name when it has one, otherwise the function's first line. */
+/**
+ * Where to report a function: its name when it has one, otherwise its `function` keyword or, for
+ * an arrow, its `=>`.
+ */
 export function functionReportLoc(node: FunctionNode, sourceCode: SourceCode): Location {
-	return firstLineLoc(sourceCode, (functionNameNode(node) ?? node).loc);
+	const name = functionNameNode(node);
+	if (name !== undefined) return nameLoc(sourceCode, name);
+	const head =
+		node.type === "ArrowFunctionExpression"
+			? sourceCode.getTokenBefore(node.body, { filter: (token) => token.value === "=>" })
+			: sourceCode.getFirstToken(node, { filter: (token) => token.value === "function" });
+	return firstLineLoc(sourceCode, (head ?? node).loc);
 }
 
 /** `` `name` `` after a smell name in a message, or nothing for an anonymous function. */

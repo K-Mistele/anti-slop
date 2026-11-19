@@ -5,6 +5,7 @@ import {
 	isWrapper,
 	unwrap,
 } from "../shared.ts";
+import { nameLoc } from "../../shared/report-location.ts";
 
 const mutatingMethods = new Set([
 	"add",
@@ -170,7 +171,7 @@ export const globalDataRule = defineRule({
 					}
 					if (how === undefined) continue;
 					context.report({
-						node: declarator.id,
+						loc: nameLoc(context.sourceCode, declarator.id),
 						messageId: "globalData",
 						data: { name: declarator.id.name, how },
 					});

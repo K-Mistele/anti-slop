@@ -8,6 +8,7 @@ import {
 	stringListOption,
 	unwrap,
 } from "../shared.ts";
+import { nameLoc } from "../../shared/report-location.ts";
 
 const defaultVerbs = [
 	"apply",
@@ -146,7 +147,7 @@ export const mysteriousNameRule = defineRule({
 		const checkFunctionName = (identifier: ESTree.BindingIdentifier) => {
 			if (isGeneric(identifier.name)) {
 				context.report({
-					node: identifier,
+					loc: nameLoc(context.sourceCode, identifier),
 					messageId: "genericName",
 					data: { name: identifier.name },
 				});
@@ -185,7 +186,7 @@ export const mysteriousNameRule = defineRule({
 				const target = aliasedFunctionName(context.sourceCode, declarator.init);
 				if (target === undefined || target === declarator.id.name) return;
 				context.report({
-					node: declarator.id,
+					loc: nameLoc(context.sourceCode, declarator.id),
 					messageId: "alias",
 					data: { name: declarator.id.name, target },
 				});

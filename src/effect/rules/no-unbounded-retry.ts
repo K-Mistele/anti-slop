@@ -250,7 +250,7 @@ export const noUnboundedRetryRule = defineRule({
 				const schedule = policySchedule(context.sourceCode, retry.policy);
 				if (schedule === null || scheduleBound(reader, schedule) !== "unbounded") return;
 				if (retry.timeoutApplies && hasLaterTimeout(node, names)) return;
-				context.report({ node, messageId: "unboundedRetry" });
+				context.report({ node, loc: node.callee.loc, messageId: "unboundedRetry" });
 			},
 		};
 	},

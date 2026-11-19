@@ -88,7 +88,7 @@ tester.run("anti-slop-effect/require-operation-span", requireOperationSpanRule, 
 					}).pipe(Effect.annotateLogs({ mailbox: options.name }));
 				static readonly layer = (options: Options) => Layer.effect(this, this.make(options));
 			}`,
-			errors: [missingSpan("process", "Mailbox")],
+			errors: [{ ...missingSpan("process", "Mailbox"), line: 9, column: 27, endLine: 9, endColumn: 34 }],
 		},
 	],
 });

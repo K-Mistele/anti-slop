@@ -30,7 +30,7 @@ tester.run("anti-slop-xstate/no-direct-xstate-use-selector", noDirectXStateUseSe
 		{
 			code: `import * as XStateReact from "@xstate/react";
 			const useIsOn = () => XStateReact.useSelector(toggleActor, (snapshot) => snapshot.matches("on"));`,
-			errors: [{ messageId: "directUseSelector" }],
+			errors: [{ messageId: "directUseSelector", line: 2, column: 25, endLine: 2, endColumn: 48 }],
 		},
 	],
 });

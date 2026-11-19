@@ -46,7 +46,7 @@ tester.run("anti-slop-xstate/no-multiple-xstate-hooks", noMultipleXStateHooksRul
 				const [payment] = useMachine(paymentMachine);
 				return <span>{cart.value}{payment.value}</span>;
 			};`,
-			errors: [{ messageId: "multipleHooks", data: { first: "useMachine", second: "useMachine" } }],
+			errors: [{ messageId: "multipleHooks", data: { first: "useMachine", second: "useMachine" }, line: 4, column: 22, endLine: 4, endColumn: 32 }],
 		},
 	],
 });

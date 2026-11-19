@@ -94,7 +94,7 @@ tester.run('anti-slop/no-reprovide-ambient-service', noReprovideAmbientServiceRu
           return Effect.provideService(request, HttpClient.HttpClient, httpClient)
         })
       `,
-			errors: [error],
+			errors: [{ ...error, line: 6, column: 17, endLine: 6, endColumn: 38 }],
 		},
 	],
 })

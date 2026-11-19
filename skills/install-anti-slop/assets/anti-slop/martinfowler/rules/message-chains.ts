@@ -102,6 +102,13 @@ function chainTop(node: ESTree.MemberExpression): ESTree.Expression | undefined 
 	}
 }
 
+/** The chain without the arguments of its outermost calls, which can hold whole callbacks. */
+function chainHead(top: ESTree.Expression): ESTree.Expression {
+	let current = unwrap(top);
+	while (current.type === "CallExpression") current = unwrap(current.callee);
+	return current;
+}
+
 /** Flag long navigation chains through other objects' properties and getters. */
 export const messageChainsRule = defineRule({
 	meta: {
@@ -155,7 +162,7 @@ export const messageChainsRule = defineRule({
 					if (ignorePascalCase && /^[A-Z]/.test(root.name)) return;
 				}
 				context.report({
-					loc: firstLineLoc(context.sourceCode, top.loc),
+					loc: firstLineLoc(context.sourceCode, chainHead(top).loc),
 					messageId: "chain",
 					data: {
 						chain: truncate(context.sourceCode.getText(top), 60),

@@ -51,6 +51,11 @@ tester.run("anti-slop-martinfowler/mysterious-name", mysteriousNameRule, {
 		{ code: "function handle() {}", errors: [generic("handle")] },
 		{ code: "export default function execute() {}", errors: [generic("execute")] },
 		{ code: "export const run = () => step();", errors: [generic("run")] },
+		{
+			// The name only, not its type annotation.
+			code: "export const init: AppInit<Model> = () => start();",
+			errors: [{ ...generic("init"), line: 1, column: 13, endLine: 1, endColumn: 17 }],
+		},
 		{ code: "export const doWork = async () => {};", errors: [generic("doWork")] },
 		{ code: "const processData = function (rows) {};", errors: [generic("processData")] },
 		{

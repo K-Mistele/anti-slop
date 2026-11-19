@@ -14,8 +14,9 @@ function validate(rules: ReadonlyArray<MartinFowlerJevRule>): void {
 		assert.ok(targets.has(rule.target), `rule "${rule.id}" has invalid target "${rule.target}"`);
 		assert.ok(rule.cutoff > 0 && rule.cutoff <= 1, `rule "${rule.id}" cutoff must be in (0, 1]`);
 		assert.ok(rule.question.trim().endsWith("?"), `rule "${rule.id}" question must end in "?"`);
-		assert.ok(rule.message.startsWith("Possibly "), `rule "${rule.id}" message must start with "Possibly "`);
-		assert.ok(rule.message.includes("Consider "), `rule "${rule.id}" message must contain "Consider "`);
+		assert.ok(!rule.message.includes("\n"), `rule "${rule.id}" message must be one line`);
+		assert.ok(rule.message.length <= 120, `rule "${rule.id}" message must be at most 120 characters`);
+		assert.ok(rule.help.includes("Consider "), `rule "${rule.id}" help must contain "Consider "`);
 
 		if (rule.location === undefined) continue;
 

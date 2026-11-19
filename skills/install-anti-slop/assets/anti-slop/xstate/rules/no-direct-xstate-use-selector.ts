@@ -18,7 +18,7 @@ export const noDirectXStateUseSelectorRule = defineRule({
 		const imports = collectXStateImports(context.sourceCode.ast, "@xstate/react");
 		return {
 			CallExpression(node) {
-				if (importedCallee(node.callee, imports) === "useSelector") context.report({ node, messageId: "directUseSelector" });
+				if (importedCallee(node.callee, imports) === "useSelector") context.report({ node, loc: node.callee.loc, messageId: "directUseSelector" });
 			},
 		};
 	},

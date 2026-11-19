@@ -100,7 +100,7 @@ tester.run("anti-slop-martinfowler/long-function", longFunctionRule, {
 			],
 		},
 		{
-			// Anonymous functions are reported on their first line only, never their whole body.
+			// Anonymous functions are reported at their `function` keyword, never their whole body.
 			code: `items.forEach(function () {\n${statements(4)}\n});`,
 			options: [{ maxStatements: 3 }],
 			errors: [
@@ -109,7 +109,35 @@ tester.run("anti-slop-martinfowler/long-function", longFunctionRule, {
 					line: 1,
 					column: 14,
 					endLine: 1,
-					endColumn: 27,
+					endColumn: 22,
+				},
+			],
+		},
+		{
+			// Anonymous arrows are reported at their `=>`.
+			code: `items.forEach((item) => {\n${statements(4)}\n});`,
+			options: [{ maxStatements: 3 }],
+			errors: [
+				{
+					message: `Long function: 4 statements (limit 3). ${hint}`,
+					line: 1,
+					column: 21,
+					endLine: 1,
+					endColumn: 23,
+				},
+			],
+		},
+		{
+			// A binding's name is reported without its type annotation.
+			code: `const handler: Handler<Request> = () => {\n${statements(4)}\n};`,
+			options: [{ maxStatements: 3 }],
+			errors: [
+				{
+					message: `Long function \`handler\`: 4 statements (limit 3). ${hint}`,
+					line: 1,
+					column: 6,
+					endLine: 1,
+					endColumn: 13,
 				},
 			],
 		},
@@ -122,7 +150,7 @@ tester.run("anti-slop-martinfowler/long-function", longFunctionRule, {
 					line: 1,
 					column: 15,
 					endLine: 1,
-					endColumn: 29,
+					endColumn: 23,
 				},
 			],
 		},

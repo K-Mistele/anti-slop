@@ -114,6 +114,7 @@ export const noReprovideAmbientServiceRule = defineRule({
 
 				context.report({
 					node,
+					loc: node.callee.loc,
 					messageId: 'reprovideAmbientService',
 					data: { service: context.sourceCode.getText(requestedService) },
 				})

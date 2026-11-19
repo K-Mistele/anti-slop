@@ -20,7 +20,7 @@ new RuleTester().run("no-manual-tag-comparison", noManualTagComparisonRule, {
 		},
 		{
 			code: "switch (value._tag) { case \"Ready\": handleReady(value); }",
-			errors: [{ messageId: "manualSwitch" }],
+			errors: [{ messageId: "manualSwitch", line: 1, column: 8, endLine: 1, endColumn: 18 }],
 		},
 	],
 });

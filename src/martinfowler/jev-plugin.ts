@@ -10,5 +10,5 @@ export default createJevPlugin({
 	...martinFowlerJevOptions,
 	name: martinFowlerJevPluginName,
 	ci: "fail",
-	rules: [...martinFowlerJevRules],
+	rules: martinFowlerJevRules.map(({ help: _help, ...rule }) => rule),
 });

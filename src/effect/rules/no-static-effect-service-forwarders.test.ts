@@ -89,7 +89,7 @@ tester.run("anti-slop-effect/no-static-effect-service-forwarders", noStaticEffec
 						return yield* users.find(id);
 					});
 			}`,
-			errors: [forwarder("find", "find")],
+			errors: [{ ...forwarder("find", "find"), line: 5, column: 20, endLine: 5, endColumn: 24 }],
 		},
 		{
 			code: `${imports}

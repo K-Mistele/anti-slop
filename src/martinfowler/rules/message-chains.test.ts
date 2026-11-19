@@ -45,7 +45,12 @@ tester.run("anti-slop-martinfowler/message-chains", messageChainsRule, {
 		{
 			// The method call at the end is a command; the path before it still navigates four objects.
 			code: "this.deps.store.cache.entries.clear();",
-			errors: [error("this.deps.store.cache.entries.clear()", 4)],
+			errors: [{ ...error("this.deps.store.cache.entries.clear()", 4), line: 1, column: 0, endLine: 1, endColumn: 35 }],
+		},
+		{
+			// The chain is reported without its call's arguments, which can hold a callback.
+			code: "ctx.request.headers.authorization.token.use(() => run());",
+			errors: [{ ...error("ctx.request.headers.authorization.token.use(() => run())", 4), line: 1, column: 0, endLine: 1, endColumn: 43 }],
 		},
 		{
 			code: "const id = rows[0].owner.team.org.id;",

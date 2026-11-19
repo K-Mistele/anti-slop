@@ -38,7 +38,7 @@ export const noManualTagComparisonRule = defineRule({
 				) {
 					return;
 				}
-				context.report({ node, messageId: "manualSwitch" });
+				context.report({ node, loc: node.discriminant.loc, messageId: "manualSwitch" });
 			},
 		};
 	},

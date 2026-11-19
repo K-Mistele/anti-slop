@@ -66,14 +66,28 @@ test("splitOptions hands the rule its own options and reads mode and base", () =
 });
 
 test("anti-slop's own rules report only the first line of a multi-line node", () => {
-	const rule = antiSlopXState.rules["no-direct-xstate-create-machine"];
+	const rule = antiSlopXState.rules["require-xstate-event-satisfies"];
 	assert.ok(rule !== undefined);
 	new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run("first-line", rule, {
 		valid: [],
 		invalid: [
 			{
+				code: 'import { createActor } from "xstate";\nconst actor = createActor(machine).start();\nactor.send({\n  type: "file.selected",\n});',
+				errors: [{ messageId: "missingSatisfies", line: 3, column: 11, endLine: 3, endColumn: 12 }],
+			},
+		],
+	});
+});
+
+test("a report that gives loc as well as node is printed at loc", () => {
+	const rule = antiSlopXState.rules["no-direct-xstate-create-machine"];
+	assert.ok(rule !== undefined);
+	new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run("loc", rule, {
+		valid: [],
+		invalid: [
+			{
 				code: 'import { createMachine } from "xstate";\nconst machine = createMachine({\n  id: "toggle",\n});',
-				errors: [{ messageId: "directCreateMachine", line: 2, column: 16, endLine: 2, endColumn: 31 }],
+				errors: [{ messageId: "directCreateMachine", line: 2, column: 16, endLine: 2, endColumn: 29 }],
 			},
 		],
 	});

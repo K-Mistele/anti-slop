@@ -122,8 +122,13 @@ function onFirstLine(sourceCode: SourceCode, diagnostic: Diagnostic): Diagnostic
 	return { ...diagnostic, loc: firstLineLoc(sourceCode, range) };
 }
 
+/**
+ * The lines a report is about: its `node` when it has one, else its `loc`. A rule that gives both
+ * reports the whole construct as `node` and points `loc` at a short part of it, so a change
+ * anywhere in the construct still counts.
+ */
 const spanOf = (diagnostic: Diagnostic): LineSpan | undefined =>
-	spanOfLoc(diagnostic.loc) ?? (isRecord(diagnostic.node) ? spanOfLoc(diagnostic.node.loc) : undefined);
+	(isRecord(diagnostic.node) ? spanOfLoc(diagnostic.node.loc) : undefined) ?? spanOfLoc(diagnostic.loc);
 
 /** The changed lines of the current file when the rule runs in `"changed"` mode, else `"all"`. */
 function linesToCheck(context: Context): ReturnType<typeof changedLines> {
