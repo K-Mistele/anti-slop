@@ -30,7 +30,7 @@ why. The diff rules use the same default base.
 | --- | --- |
 | `anti-slop/*`, `anti-slop-effect/*`, `anti-slop-xstate/*`, `anti-slop-martinfowler/*` | Built in: every rule's options accept `mode` and `base`. |
 | `anti-slop-effect-jev/*`, `anti-slop-martinfowler-jev/*`, `createJevPlugin` rules, `jev/ask` | Built into the `oxlint-plugin-jev` fork. |
-| `landmines/*`, `ai-guard/*`, `effect/*` (cevr), `enfect/*` | Register anti-slop's checked-in wrapper modules instead of the package (below). |
+| `landmines/*`, `ai-guard/*`, `effect/*` (cevr), `enfect/*` | Register anti-slop's checked-in wrapper modules instead of the package (below). `plugins/ai-guard.ts` holds the ai-guard rules anti-slop ports, so there is no package to register. |
 | Built-in Oxlint rules (`eslint`, `typescript`, `oxc`, `unicorn`, ...) and `effecttsgo/*` | Cannot take a mode; they always check every line. Do not put `mode` in their options. |
 
 The wrappers in `plugins/` import the real plugin and re-export every rule with a schema that also
@@ -110,12 +110,12 @@ command defaults to `oxlint`. Effect repositories pass their wrapper, for exampl
 - CI: the pre-push commands, then the [diff rules](./diff-rules.md).
 
 `integrity` is the `"integrity": "node tools/oxlint/anti-slop/integrity/run.ts"` script. It fails when the
-branch weakens its own checks: `ai-guard integrity --enforce` (skipped or deleted tests, new suppressions,
-weakened ESLint, TypeScript, coverage, script, CI, and hook settings) plus anti-slop's checks for disable
-comments without a ` -- reason` and oxlint config changes that lower or remove rules, add `ignorePatterns`, or
-remove `jsPlugins`. It diffs against the same base as `"changed"` mode and honors `ANTI_SLOP_BASE`. It needs
-`eslint-plugin-ai-guard` and `@typescript-eslint/parser` and no network or credentials. Use the package
-manager the repository uses (`pnpm integrity`, `yarn integrity`).
+branch weakens its own checks: the `ai-guard integrity --enforce` analysis, ported from eslint-plugin-ai-guard
+(skipped or deleted tests, `@effect/vitest` tests included, new suppressions, weakened ESLint, TypeScript,
+coverage, script, CI, and hook settings) plus anti-slop's checks for disable comments without a ` -- reason`
+and oxlint config changes that lower or remove rules, add `ignorePatterns`, or remove `jsPlugins`. It diffs
+against the same base as `"changed"` mode and honors `ANTI_SLOP_BASE`. It needs `oxc-parser` and `js-yaml` and
+no network or credentials. Use the package manager the repository uses (`pnpm integrity`, `yarn integrity`).
 
 Add them with the hook tool the repository already uses:
 

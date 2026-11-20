@@ -13,7 +13,7 @@ export default defineConfig({
 		{ name: "landmines", specifier: "@interfere/landmines/testing" },
 		{ name: "effect", specifier: "oxlint-plugin-effect/plugin" },
 		{ name: "enfect", specifier: "@enfect/oxlint" },
-		{ name: "ai-guard", specifier: "eslint-plugin-ai-guard" },
+		{ name: "ai-guard", specifier: "./src/plugins/ai-guard.ts" },
 	],
 	rules: {
 		...Object.fromEntries(effectTsgoRules.map((rule) => [rule, "error"])),
